@@ -1,0 +1,18 @@
+# Dependencias de las herramientas de verificación
+node_modules/
+
+# Capturas y borradores que se generan al verificar (pesan mucho y se regeneran)
+dev/shots/
+dev/review-*/
+dev/revision-*/
+dev/**/_backup/
+dev/**/bak/
+dev/**/img/
+dev/**/*.log
+dev/**/_*tmp*
+dev/e2e/*.png
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
