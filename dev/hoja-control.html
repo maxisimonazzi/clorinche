@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Colorinche — hoja de control de dibujos</title>
+<!-- Motor REAL de la app (CL.regions + CL.coloring.renderRandom) con todos los dibujos del registro. -->
+<script src="../app/js/core/ns.js"></script>
+<script src="../app/js/core/db.js"></script>
+<script src="../app/js/drawings/registry.js"></script>
+<script src="../app/js/drawings/granja.js"></script>
+<script src="../app/js/drawings/mascotas.js"></script>
+<script src="../app/js/drawings/selva.js"></script>
+<script src="../app/js/drawings/mar.js"></script>
+<script src="../app/js/drawings/dinosaurios.js"></script>
+<script src="../app/js/drawings/vehiculos.js"></script>
+<script src="../app/js/drawings/naturaleza.js"></script>
+<script src="../app/js/drawings/comida.js"></script>
+<script src="../app/js/drawings/fantasia.js"></script>
+<script>
+  // Sin dibujos todavía (o con #ejemplo): se usa el pollito de ejemplo.
+  if (location.hash === '#ejemplo' || !CL.drawings.all().length) document.write('<script src="drawings/ejemplo-pollito.js"><\/script>');
+</script>
+<script src="../app/js/coloring/regions.js"></script>
+<script src="../app/js/coloring/fills.js"></script>
+<script src="../app/js/coloring/engine.js"></script>
+<style>
+  body { margin: 0; background: #f3f0ea; font-family: 'Segoe UI', system-ui, sans-serif; color: #2b2240; }
+  h1 { margin: 16px; font-size: 22px; }
+  #hoja { display: block; margin: 0 16px 16px; max-width: calc(100% - 32px); height: auto; }
+</style>
+</head>
+<body>
+<h1>Hoja de control: cada zona pintada de un color al azar; el fondo va SIEMPRE en celeste pálido.</h1>
+<canvas id="hoja"></canvas>
+<script>
+/* Si una parte del dibujo sale celeste pálido, esa zona "se escapa" al fondo (hay un hueco en la línea).
+   Zonas diminutas (< 0,04 % del área) quedan blancas: son brillitos bloqueados.
+   Avisos en rojo: fondo > 85 % del lienzo (el dibujo casi no tiene zonas propias) o < 3 zonas pintables. */
+const BG = '#cfeeff';
+const RES = 2048; // la misma resolución que usa la app
+
+async function makeSheet({ cat = null, cell = 420, cols = 4, seed = 1 } = {}) {
+  const list = CL.drawings.list(cat || undefined);
+  const rows = Math.max(1, Math.ceil(list.length / cols));
+  const pad = 16, lab = 54;
+  const sheet = document.getElementById('hoja');
+  sheet.width = cols * (cell + pad) + pad;
+  sheet.height = rows * (cell + pad + lab) + pad;
+  const ctx = sheet.getContext('2d');
+  ctx.fillStyle = '#f3f0ea';
+  ctx.fillRect(0, 0, sheet.width, sheet.height);
+  const stats = [];
+  for (let i = 0; i < list.length; i++) {
+    const d = list[i];
+    const x = pad + (i % cols) * (cell + pad), y = pad + Math.floor(i / cols) * (cell + pad + lab);
+    let r;
+    try {
+      r = await CL.coloring.renderRandom(d.id, cell * 2, { res: RES, bg: BG, seed: seed * 7919 + i * 104729, withStats: true });
+    } catch (e) {
+      ctx.fillStyle = '#ff5a5f'; ctx.font = '600 20px sans-serif'; ctx.fillText('ERROR: ' + e.message, x + 8, y + 30);
+      stats.push({ id: d.id, error: String(e) });
+      continue;
+    }
+    const s = r.stats;
+    const warn = s.bgFrac > 0.85 || s.fillable < 3;
+    s.warn = warn;
+    stats.push(s);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y, cell, cell);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(r.canvas, x, y, cell, cell);
+    if (warn) { ctx.strokeStyle = '#ff2d2d'; ctx.lineWidth = 8; ctx.strokeRect(x + 4, y + 4, cell - 8, cell - 8); }
+    ctx.fillStyle = warn ? '#d0021b' : '#2b2240';
+    ctx.font = `600 ${Math.round(Math.max(15, cell * 0.06))}px sans-serif`;
+    ctx.fillText(`${d.name} (${d.id})`, x + 4, y + cell + 24, cell - 8);
+    ctx.font = `${Math.round(Math.max(12, cell * 0.042))}px sans-serif`;
+    ctx.fillStyle = '#6a5f80';
+    ctx.fillText(`${d.cat} · zonas ${s.fillable} · brillitos ${s.tiny} · fondo ${Math.round(s.bgFrac * 100)}% · ${s.ms} ms`, x + 4, y + cell + 46, cell - 8);
+    await new Promise((res) => setTimeout(res, 0));
+  }
+  return { png: sheet.toDataURL('image/png'), stats };
+}
+
+window.makeSheet = makeSheet;
+window.categories = () => [...new Set(CL.drawings.all().map((d) => d.cat))];
+window.ready = true;
+</script>
+</body>
+</html>
