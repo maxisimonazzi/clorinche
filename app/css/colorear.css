@@ -1,0 +1,534 @@
+/* Colorinche — catálogo de dibujos (#dibujos) y pantalla de colorear (#colorear). */
+
+/* =====================================================================
+   Pantalla de colorear
+   ===================================================================== */
+.screen--colorear {
+  --cur: #f23a3a;
+  --sw: 56px;          /* círculos de la paleta */
+  --sw-gap: 8px;
+  background: var(--bg);
+}
+
+.screen--colorear .cl {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "bar bar bar" "tools stage pal";
+}
+
+/* Barra superior */
+.screen--colorear .cl-bar { grid-area: bar; padding: 8px 12px; }
+.screen--colorear .cl-done { padding: 0 24px 0 12px; }
+.screen--colorear .cl-done .icon { filter: drop-shadow(0 1px 0 rgba(43, 34, 64, 0.25)); }
+.screen--colorear .cl-done .btn-text { font-size: 1.35rem; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15); }
+
+/* Herramientas */
+.screen--colorear .cl-tools {
+  grid-area: tools;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 8px 12px 12px;
+  min-height: 0;
+}
+.screen--colorear .cl-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  transition: opacity 0.2s;
+}
+.screen--colorear .cl-g-opts.cl-off { opacity: 0.4; }
+.screen--colorear .cl-g-opts.cl-off .btn.active { box-shadow: var(--shadow); transform: none; }
+.screen--colorear .cl-tool .icon { width: 74%; height: 74%; }
+.screen--colorear .cl-tool.active { background: #fff7d1; }
+.screen--colorear .cl-clip.active { background: #e4fbef; }
+.screen--colorear .cl-size .cl-dot { display: block; border-radius: 50%; background: var(--cur); box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.55); }
+.screen--colorear .btn.disabled { opacity: 0.35; pointer-events: auto; }
+.screen--colorear .cl-cur { fill: var(--cur); }
+.screen--colorear .cl-cur-s { stroke: var(--cur); }
+.screen--colorear .cl-nudge { animation: cl-nudge 0.7s ease; }
+@keyframes cl-nudge {
+  0%, 100% { transform: none; }
+  20% { transform: translateY(-10px) rotate(-10deg) scale(1.1); }
+  40% { transform: translateY(0) rotate(8deg); }
+  60% { transform: translateY(-6px) rotate(-6deg) scale(1.06); }
+  80% { transform: translateY(0) rotate(3deg); }
+}
+
+/* Escenario (dibujo) */
+.screen--colorear .cl-stage {
+  grid-area: stage;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.55), transparent 55%),
+    #fde3b1;
+  box-shadow: inset 0 2px 10px rgba(43, 34, 64, 0.1);
+  margin: 0 0 12px;
+  cursor: crosshair;
+}
+.screen--colorear .cl-stage[data-tool="brush"],
+.screen--colorear .cl-stage[data-tool="eraser"] { cursor: none; }
+.screen--colorear .cl-stage.cl-pan { cursor: grab; }
+.screen--colorear .cl-board {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 6px 22px rgba(43, 34, 64, 0.18), 0 0 0 1px rgba(43, 34, 64, 0.08);
+  overflow: hidden;
+  isolation: isolate;
+}
+.screen--colorear .cl-board canvas,
+.screen--colorear .cl-board img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.screen--colorear .cl-board .cl-lines { mix-blend-mode: multiply; }
+.screen--colorear .cl-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), inset 0 0 0 999px color-mix(in srgb, var(--cur) 35%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+.screen--colorear .cl-cursor.on { opacity: 1; }
+.screen--colorear .cl-cursor.erase { border-style: dashed; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9); }
+
+/* Botones de zoom: columna a la derecha del escenario (fila arriba en vertical) */
+.screen--colorear .cl-zoom {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 4;
+}
+.screen--colorear .cl-zoom.cl-zoom-row { top: 8px; right: 8px; transform: none; flex-direction: row; }
+.screen--colorear .cl-zoom .cl-fit { opacity: 0.45; }
+.screen--colorear .cl-zoom.cl-zoomed .cl-fit { opacity: 1; }
+
+/* Paleta */
+.screen--colorear .cl-pal {
+  grid-area: pal;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  padding: 14px 14px 14px 12px;
+}
+.screen--colorear .cl-pal::-webkit-scrollbar { display: none; }
+.screen--colorear .cl-pal-in {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: max-content;
+  margin: auto;
+}
+.screen--colorear .cl-sws {
+  display: grid;
+  grid-template-columns: repeat(3, var(--sw));
+  gap: var(--sw-gap);
+}
+.screen--colorear .cl-specials {
+  padding-top: 12px;
+  border-top: 3px dashed rgba(43, 34, 64, 0.15);
+}
+.screen--colorear .cl-sw {
+  position: relative;
+  width: var(--sw);
+  height: var(--sw);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.16), 0 3px 0 rgba(43, 34, 64, 0.16);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  outline: none;
+  overflow: visible;
+}
+.screen--colorear .cl-sw-white { box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.28), 0 3px 0 rgba(43, 34, 64, 0.16); }
+.screen--colorear .cl-sw:active { transform: scale(0.9); }
+.screen--colorear .cl-sw:focus-visible { box-shadow: 0 0 0 4px var(--blue); }
+/* Seleccionado: anillo blanco + oscuro de 6 px, menor que el espacio entre círculos (no pisa a los vecinos) */
+.screen--colorear .cl-sw.active {
+  transform: scale(1.04);
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.16), 0 0 0 3px #fff, 0 0 0 6px var(--ink);
+  z-index: 1;
+}
+.screen--colorear .cl-sp canvas { width: 100%; height: 100%; border-radius: 50%; pointer-events: none; }
+.screen--colorear .cl-sp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.16);
+  pointer-events: none;
+}
+/* Selector de cualquier color: anillo arcoíris con el color elegido en el centro */
+.screen--colorear .cl-pick {
+  --pick: #6fd3c4;
+  background: conic-gradient(#ff4b4b, #ffd83a, #5ad45a, #3fbdf5, #5a6cff, #b45cff, #ff4bb4, #ff4b4b);
+}
+.screen--colorear .cl-pick-in {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: var(--pick);
+  box-shadow: 0 0 0 3px #fff;
+}
+
+/* Cargando */
+.screen--colorear .cl-stage.cl-loading .cl-zoom { visibility: hidden; }
+
+/* ---------- Selector de color (ventana) ---------- */
+.cl-pk-back .modal { padding: 20px; width: min(94vw, 640px); }
+.cl-picker { display: flex; flex-direction: column; gap: 14px; padding-top: 44px; }
+.cl-pk-mapbox, .cl-pk-graybox { position: relative; border-radius: 18px; overflow: visible; touch-action: none; cursor: crosshair; }
+.cl-pk-map { width: 100%; height: min(36vh, 300px); border-radius: 18px; box-shadow: inset 0 0 0 2px rgba(43, 34, 64, 0.2); }
+.cl-pk-gray { width: 100%; height: 54px; border-radius: 16px; box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.2); }
+.cl-pk-mark {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 3px var(--ink), 0 4px 10px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.cl-pk-row { display: flex; align-items: center; justify-content: center; gap: 24px; }
+.cl-pk-prev { width: 84px; height: 84px; border-radius: 50%; box-shadow: inset 0 0 0 4px rgba(43, 34, 64, 0.2), var(--shadow); }
+@media (max-height: 520px) {
+  .cl-pk-back .modal { padding: 12px 16px; width: min(90vw, 700px); }
+  .cl-picker { gap: 8px; padding-top: 4px; padding-right: 60px; }
+  .cl-pk-map { height: 150px; }
+  .cl-pk-gray { height: 46px; }
+  .cl-pk-prev { width: 60px; height: 60px; }
+  .cl-pk-ok.btn-lg { width: var(--btn); height: var(--btn); }
+}
+
+/* ---------- Horizontal con poca altura (celular acostado) ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .screen--colorear { --sw: 46px; --sw-gap: 6px; }
+  .screen--colorear .cl {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "bar tools stage pal";
+  }
+  .screen--colorear .cl-bar { flex-direction: column; padding: 8px 4px 8px 8px; }
+  .screen--colorear .cl-done { width: var(--btn); padding: 0; border-radius: 50%; }
+  .screen--colorear .cl-done .btn-text { display: none; }
+  .screen--colorear .cl-home { display: none; }
+  .screen--colorear .cl-tools {
+    display: grid;
+    grid-template-areas: "t o" "h o";
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 8px;
+    padding: 8px 6px;
+  }
+  .screen--colorear .cl-g-tools { grid-area: t; }
+  .screen--colorear .cl-g-opts { grid-area: o; align-self: center; }
+  .screen--colorear .cl-g-hist { grid-area: h; }
+  .screen--colorear .cl-group { padding: 4px; gap: 6px; }
+  .screen--colorear .cl-stage { margin: 8px 0; border-radius: 18px; }
+  .screen--colorear .cl-zoom { gap: 6px; right: 6px; }
+  .screen--colorear { --sw-gap: 8px; }
+  /* margen para que el anillo del color elegido no se corte contra el borde */
+  .screen--colorear .cl-pal { padding: 14px 12px 14px 14px; }
+  /* Especiales y "cualquier color" primero: la columna scrollea y abajo quedarían fuera de la vista */
+  .screen--colorear .cl-specials {
+    order: -1;
+    padding: 0 0 12px;
+    border-top: 0;
+    border-bottom: 3px dashed rgba(43, 34, 64, 0.15);
+  }
+}
+
+/* ---------- Vertical (celular y tablet paradas) ---------- */
+@media (orientation: portrait) {
+  .screen--colorear .cl {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "bar" "stage" "tools" "pal";
+  }
+  .screen--colorear .cl-stage { margin: 0 8px; border-radius: 20px; }
+  .screen--colorear .cl-tools {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 10px;
+    padding: 10px 8px 4px;
+  }
+  .screen--colorear .cl-group { flex-direction: row; }
+  .screen--colorear .cl-g-tools { order: 1; }
+  .screen--colorear .cl-g-hist { order: 2; }
+  .screen--colorear .cl-g-opts { order: 3; }
+  .screen--colorear .cl-pal {
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    padding: 12px 16px 12px;
+  }
+  .screen--colorear .cl-pal-in { flex-direction: row; margin: 0 auto; }
+  .screen--colorear .cl-sws { grid-auto-flow: column; grid-template-columns: none; grid-template-rows: repeat(3, var(--sw)); }
+  /* En el celular la tira no entra entera: especiales y "cualquier color" van primero (a la izquierda)
+     para que se vean sin deslizar; el círculo cortado en el borde derecho invita a deslizar. */
+  .screen--colorear .cl-specials {
+    order: -1;
+    padding: 0 12px 0 0;
+    border-top: 0;
+    border-right: 3px dashed rgba(43, 34, 64, 0.15);
+  }
+}
+@media (orientation: portrait) and (max-width: 600px) {
+  .screen--colorear { --sw: 48px; --sw-gap: 7px; }
+  .screen--colorear .cl-bar { padding: 6px 8px; }
+  .screen--colorear .cl-done { padding: 0 16px 0 8px; }
+  .screen--colorear .cl-done .btn-text { font-size: 1.15rem; }
+  .screen--colorear .cl-tools { gap: 6px 8px; padding: 8px 6px 2px; }
+  .screen--colorear .cl-group { gap: 6px; padding: 4px; }
+  .screen--colorear .cl-g-opts .btn:not(.btn-sm) { width: var(--btn); height: var(--btn); }
+}
+/* Celulares chicos parados: paleta en 2 filas para dejarle más lugar al dibujo. */
+@media (orientation: portrait) and (max-height: 720px) {
+  .screen--colorear .cl-sws { grid-template-rows: repeat(2, var(--sw)); }
+  .screen--colorear .cl-pal { padding: 10px 14px 10px; }
+  .screen--colorear .cl-zoom { gap: 6px; right: 6px; }
+}
+@media (orientation: portrait) and (max-width: 380px) {
+  .screen--colorear .cl-home { display: none; }
+}
+
+/* =====================================================================
+   Catálogo de dibujos
+   ===================================================================== */
+.screen--dibujos { background: var(--bg); }
+.screen--dibujos .dj-bar { padding: 10px 14px; }
+.screen--dibujos .dj-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.screen--dibujos .dj-title .dj-title-dot { width: 22px; height: 22px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.2); }
+
+/* Tira de categorías para saltar rápido */
+.screen--dibujos .dj-strip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+  /* Lugar abajo para la sombra de los círculos (el scroll la recortaría con un borde recto). */
+  padding: 8px 10px 18px;
+  margin: -8px 0 -18px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent);
+}
+.screen--dibujos .dj-chip {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--btn);
+  height: var(--btn);
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  /* Sombra más corta que la de los botones: entra entera en la tira. */
+  --chip-shadow: 0 3px 0 rgba(43, 34, 64, 0.16), 0 5px 9px rgba(43, 34, 64, 0.12);
+  box-shadow: var(--chip-shadow);
+  cursor: pointer;
+  transition: transform 0.12s;
+  touch-action: manipulation;
+}
+.screen--dibujos .dj-chip:active { transform: scale(0.92); }
+.screen--dibujos .dj-chip img, .screen--dibujos .dj-chip canvas, .screen--dibujos .dj-chip .icon {
+  width: 100%; height: 100%; border-radius: 50%; background: #fff; object-fit: contain; pointer-events: none;
+}
+.screen--dibujos .dj-chip .icon { padding: 14%; }
+.screen--dibujos .dj-chip.active { box-shadow: 0 0 0 4px var(--ink), var(--chip-shadow); transform: scale(1.06); }
+
+/* Grilla */
+.screen--dibujos .dj-scroll { position: relative; flex: 1; min-height: 0; }
+.screen--dibujos .dj-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 6px 16px 28px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+@media (min-width: 600px) { .screen--dibujos .dj-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
+@media (min-width: 900px) { .screen--dibujos .dj-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (min-width: 1200px) { .screen--dibujos .dj-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; padding: 6px 28px 28px; } }
+@media (orientation: landscape) and (max-height: 520px) { .screen--dibujos .dj-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } }
+
+/* Tarjetas de categoría */
+.screen--dibujos .dj-cat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 10px 10px 8px;
+  border: 0;
+  border-radius: 28px;
+  background: var(--c, #ffd9a0);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.14s ease;
+  animation: dj-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+  font: inherit;
+  color: var(--ink);
+}
+.screen--dibujos .dj-cat:active { transform: scale(0.95) rotate(-1deg); }
+.screen--dibujos .dj-cover {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.1);
+}
+.screen--dibujos .dj-cover canvas, .screen--dibujos .dj-cover img { width: 100%; height: 100%; object-fit: contain; }
+.screen--dibujos .dj-cover > .icon { width: 60%; height: 60%; margin: 20%; }
+.screen--dibujos .dj-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.screen--dibujos .dj-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(43, 34, 64, 0.2);
+}
+@keyframes dj-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; transform: none; } }
+
+/* Tarjetas de dibujo */
+.screen--dibujos .dj-item {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow), inset 0 0 0 4px var(--c, #ffd9a0);
+  overflow: visible;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.14s ease, opacity 0.3s ease;
+  animation: dj-in 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+  font: inherit;
+  color: var(--ink);
+}
+.screen--dibujos .dj-item:active { transform: scale(0.95); }
+.screen--dibujos .dj-item > img, .screen--dibujos .dj-item > canvas {
+  position: absolute;
+  inset: 8%;
+  width: 84%;
+  height: 84%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.screen--dibujos .dj-item.dj-progress > img { border-radius: 10px; }
+.screen--dibujos .dj-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 46px;
+  height: 46px;
+  padding: 5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+  animation: dj-badge 0.5s 0.3s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.screen--dibujos .dj-badge .icon { width: 100%; height: 100%; }
+@keyframes dj-badge { from { transform: scale(0) rotate(-40deg); } to { transform: none; } }
+.screen--dibujos .dj-cell { position: relative; transition: transform 0.3s ease, opacity 0.3s ease; }
+.screen--dibujos .dj-cell > .dj-item { width: 100%; }
+.screen--dibujos .dj-cell.dj-out { transform: scale(0.3) rotate(-12deg); opacity: 0; pointer-events: none; }
+.screen--dibujos .dj-del { position: absolute; left: -6px; bottom: -6px; z-index: 2; }
+
+/* "Mis dibujos": subir una imagen */
+.screen--dibujos .dj-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #fff7e6;
+  box-shadow: var(--shadow), inset 0 0 0 4px #ffb938;
+}
+.screen--dibujos .dj-add .dj-add-plus { width: 46%; height: 46%; }
+.screen--dibujos .dj-add .dj-add-cam { width: 36%; height: 36%; margin-top: -6%; }
+.screen--dibujos .dj-add .icon { width: 100%; height: 100%; }
+.screen--dibujos .dj-empty {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 26px;
+  border: 4px dashed rgba(43, 34, 64, 0.2);
+  opacity: 0.85;
+}
+.screen--dibujos .dj-empty > .icon { width: 42%; height: 42%; }
+.screen--dibujos .dj-empty .dj-hand { width: 34%; height: 34%; transform: rotate(-90deg); animation: dj-point 1.2s ease-in-out infinite; }
+.screen--dibujos .dj-empty .dj-hand .icon { width: 100%; height: 100%; }
+@keyframes dj-point { 0%, 100% { transform: rotate(-90deg) translateY(0); } 50% { transform: rotate(-90deg) translateY(10px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .screen--dibujos .dj-cat, .screen--dibujos .dj-item, .screen--dibujos .dj-badge { animation: none; }
+  .screen--dibujos .dj-empty .dj-hand { animation: none; }
+}

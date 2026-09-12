@@ -1,0 +1,20 @@
+// Revisión QA 2 — pincel con "no salirse" empezando AFUERA del dibujo (margen del escenario) y entrando al dibujo.
+import { launch, appUrl, shot, stroke } from '../lib.mjs';
+import { ready, hitSel, filterErrors } from '../review-colorear/common.mjs';
+const size = process.argv[2] || 'desktop';
+const t = await launch({ size });
+const { page } = t;
+await page.goto(appUrl('colorear/conejo'));
+await ready(page);
+await hitSel(t, '[aria-label="Pincel"]');
+await hitSel(t, '.cl-sw[data-color="#8a4fdf"]');
+const clip = await page.evaluate(() => CL.coloring.screen.st.clip);
+const b = await page.evaluate(() => document.querySelector('.cl-board').getBoundingClientRect().toJSON());
+const s = await page.evaluate(() => document.querySelector('.cl-stage').getBoundingClientRect().toJSON());
+const x0 = Math.max(s.x + 6, b.x - 60);
+const y = b.y + b.height * 0.55;
+await stroke(page, [[x0, y], [b.x + b.width * 0.9, y]], { pointer: t.size.touch ? 'touch' : 'mouse', steps: 30 });
+await page.waitForTimeout(300);
+await shot(page, `colorear/c1-fuera-${size}`);
+console.log(size, 'clip activo:', clip, 'inicio a', Math.round(b.x - x0), 'px del dibujo', JSON.stringify(filterErrors(t.errors)));
+await t.close();

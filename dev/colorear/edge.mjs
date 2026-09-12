@@ -1,0 +1,31 @@
+// Casos borde: ¡Terminé! sin pintar, dibujo inexistente, subida borrada, salir mientras carga.
+import { launch, appUrl, shot } from '../lib.mjs';
+const t = await launch({ size: 'tablet' });
+const { page } = t;
+const out = {};
+await page.goto(appUrl('colorear/vaca'));
+await page.waitForFunction(() => document.querySelectorAll('.screen').length === 1 && document.querySelector('.cl-ready'));
+await page.click('.cl-done');
+await page.waitForTimeout(150);
+out.nudge = await page.evaluate(() => document.querySelector('[aria-label="Balde de pintura"]').classList.contains('cl-nudge'));
+await shot(page, 'colorear/edge-termine-sin-pintar');
+await page.waitForTimeout(1500);
+out.hashAfterEmptyDone = await page.evaluate(() => location.hash);
+out.worksAfterEmpty = await page.evaluate(async () => (await CL.db.works.list()).length);
+await page.goto(appUrl('colorear/noexiste'));
+await page.waitForTimeout(2000);
+out.hashNoExiste = await page.evaluate(() => location.hash);
+await page.goto(appUrl('colorear/u-borrada'));
+await page.waitForTimeout(2000);
+out.hashUploadBorrada = await page.evaluate(() => location.hash);
+// Salir apenas entra (mientras calcula las zonas)
+await page.goto(appUrl('colorear/leon'));
+await page.evaluate(() => CL.router.go('dibujos'));
+await page.waitForTimeout(1200);
+out.hashLeave = await page.evaluate(() => location.hash + ' ' + document.querySelectorAll('.screen').length);
+await page.goto(appUrl('dibujos/xyz'));
+await page.waitForTimeout(600);
+out.unknownCat = await page.evaluate(() => document.querySelectorAll('.dj-cat').length);
+out.errors = t.errors;
+console.log(JSON.stringify(out, null, 1));
+await t.close();

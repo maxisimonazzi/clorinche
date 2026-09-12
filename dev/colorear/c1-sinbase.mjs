@@ -1,0 +1,22 @@
+// Revisión QA 2 — navegador sin IndexedDB (almacenamiento bloqueado / modo privado): ¿se puede colorear igual?
+import { launch, appUrl, shot } from '../lib.mjs';
+import { filterErrors } from '../review-colorear/common.mjs';
+const t = await launch({ size: 'tablet' });
+const { page } = t;
+await page.context().addInitScript(() => { Object.defineProperty(window, 'indexedDB', { get: () => undefined, configurable: true }); });
+await page.goto(appUrl('dibujos/granja'));
+await page.waitForTimeout(1500);
+console.log('catálogo items', await page.evaluate(() => document.querySelectorAll('.dj-item').length));
+await page.evaluate(() => CL.router.go('colorear/vaca'));
+await page.waitForTimeout(2500);
+console.log('hash tras abrir vaca', await page.evaluate(() => location.hash), 'pantalla lista', await page.evaluate(() => !!document.querySelector('.screen--colorear.cl-ready')));
+const b = await page.evaluate(() => document.querySelector('.cl-board').getBoundingClientRect().toJSON());
+await page.mouse.click(b.x + b.width * 0.05, b.y + b.height * 0.05);
+await page.waitForTimeout(1500);
+console.log('pintado sin base', await page.evaluate(() => { const c = CL.coloring.screen.painter.canvas; return c.getContext('2d').getImageData(20, 20, 1, 1).data[3]; }));
+await shot(page, 'colorear/c1-sinbase');
+await page.evaluate(() => CL.router.go('dibujos/granja'));
+await page.waitForTimeout(1500);
+console.log('volver sin base: hash', await page.evaluate(() => location.hash), 'items', await page.evaluate(() => document.querySelectorAll('.dj-item').length));
+console.log(JSON.stringify(t.errors.slice(0, 3)));
+await t.close();
