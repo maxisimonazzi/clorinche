@@ -1,0 +1,37 @@
+// Perfil por etapas (sin freno o con freno): node subir/prof2.mjs [factor]
+import fs from 'node:fs';
+import path from 'node:path';
+import { launch, appUrl, DEV } from '../lib.mjs';
+const rate = +(process.argv[2] || 1);
+const t = await launch({ size: 'desktop' });
+const { page } = t;
+await page.goto(appUrl('subir'));
+await page.waitForFunction(() => window.CL && CL.upload);
+const cdp = await page.context().newCDPSession(page);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate });
+const b64 = fs.readFileSync(path.join(DEV, 'subir', 'img', 'enorme.jpg')).toString('base64');
+const r = await page.evaluate(async (b64) => {
+  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const T = {};
+  let t0 = performance.now();
+  const src = await CL.upload.decode(new Blob([bin], { type: 'image/jpeg' }));
+  T.decode = performance.now() - t0;
+  const P = CL.upload._p;
+  t0 = performance.now(); const px = P.readPixels(src); T.readPixels = performance.now() - t0;
+  t0 = performance.now(); const ink = P.inkOf(px, src.width * src.height); T.ink = performance.now() - t0;
+  t0 = performance.now(); P.preparePage(ink, src.width, src.height); T.preparePage = performance.now() - t0;
+  t0 = performance.now(); const small = P.fitCanvas(src, src.width, src.height, 1100); T.fit1100 = performance.now() - t0;
+  t0 = performance.now(); const spx = P.readPixels(small); T.readSmall = performance.now() - t0;
+  t0 = performance.now(); P.preparePhoto(spx, small.width, small.height); T.preparePhoto = performance.now() - t0;
+  t0 = performance.now(); const sc = P.scoreFor(src, 'page'); T.scorePage = performance.now() - t0;
+  t0 = performance.now(); const rot = CL.upload.rotate90(src); T.rotate90 = performance.now() - t0;
+  t0 = performance.now(); P.rotateField(sc); T.rotateField = performance.now() - t0;
+  t0 = performance.now(); const f = P.fieldAt(sc, 1280, 960); T.pool1280 = performance.now() - t0;
+  const B = P.makeBufs(1280 * 960);
+  t0 = performance.now(); P.binarize(f, 1280, 960, 'page', 60, true, B); T.binarize1280 = performance.now() - t0;
+  t0 = performance.now(); P.binarize(f, 1280, 960, 'page', 60, true, B); T.binarize1280b = performance.now() - t0;
+  for (const k in T) T[k] = Math.round(T[k]);
+  return T;
+}, b64);
+console.log(JSON.stringify(r), t.errors);
+await t.close();
