@@ -1,0 +1,357 @@
+/* Colorinche — pizarra mágica (dibujo libre). */
+
+.screen--pizarra {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 143, 199, 0.16), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(76, 195, 255, 0.16), transparent 45%),
+    var(--bg);
+  --pz-sw: 46px;
+}
+
+/* ---------- Barra superior ---------- */
+.screen--pizarra .pz-top { padding-bottom: 4px; }
+.screen--pizarra .pz-actions { display: flex; gap: var(--gap); align-items: center; }
+.screen--pizarra .pz-done .btn-text { font-size: 1.2rem; }
+.screen--pizarra .btn.disabled { opacity: 0.38; }
+
+/* ---------- Distribución ---------- */
+.screen--pizarra .pz-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 4px;
+}
+.screen--pizarra.pz--land .pz-main {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'tools stage panel';
+}
+.screen--pizarra.pz--port .pz-main {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: 'tools stage' 'panel panel';
+}
+
+/* Herramientas: columna (o varias) a la izquierda. */
+.screen--pizarra .pz-tools {
+  grid-area: tools;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(var(--pz-rows, 9), var(--btn));
+  gap: 8px;
+  align-content: center;
+  justify-content: center;
+  padding: 4px 8px 4px calc(var(--gap) + 2px);
+  min-height: 0;
+}
+.screen--pizarra .pz-tool .icon { width: 74%; height: 74%; }
+.screen--pizarra .pz-tool.active { background: #fff7e0; }
+.screen--pizarra .pz-stamp-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--ink);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* Pizarra */
+.screen--pizarra .pz-stage {
+  grid-area: stage;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+.screen--pizarra .pz-board {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 0 0 6px #fff, 0 0 0 9px rgba(43, 34, 64, 0.1), 0 10px 26px rgba(43, 34, 64, 0.18);
+  transition: box-shadow 0.25s;
+  cursor: crosshair;
+}
+.screen--pizarra .pz-board--chalk {
+  box-shadow: 0 0 0 7px #c68a4e, 0 0 0 10px #8d5a33, 0 10px 26px rgba(43, 34, 64, 0.25);
+}
+.screen--pizarra .pz-board canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.screen--pizarra .pz-board canvas[hidden] { display: none; }
+.screen--pizarra .pz-board.pz-shake { animation: pz-shake 0.45s ease; }
+@keyframes pz-shake {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(7px); }
+  75% { transform: translateX(-4px); }
+}
+
+/* Barrita de "borrar todo" (como el deslizador de la pizarra mágica de juguete) */
+.screen--pizarra .pz-wiper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 44px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-60px);
+  will-change: transform;
+}
+.screen--pizarra .pz-board.pz-wiping .pz-wiper { opacity: 1; }
+.screen--pizarra .pz-wiper-bar {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 6px;
+  bottom: 6px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #ffb000 0%, #ffd23f 30%, #fff3b0 45%, #ffd23f 60%, #ff9f1c 100%);
+  box-shadow: 0 0 0 3px var(--ink), 6px 0 14px rgba(43, 34, 64, 0.28);
+}
+.screen--pizarra .pz-wiper-bar::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  bottom: 70px;
+  width: 4px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.screen--pizarra .pz-wiper-knob {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9aa0 0%, #ff5a5f 45%, #d93a45 100%);
+  box-shadow: 0 0 0 3px var(--ink), 0 4px 8px rgba(43, 34, 64, 0.3);
+}
+
+/* Panel: grosores, fondo y colores */
+.screen--pizarra .pz-panel {
+  grid-area: panel;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+.screen--pizarra .pz-row1 { display: flex; align-items: center; gap: 8px; }
+.screen--pizarra .pz-sizes { display: grid; gap: 8px; }
+.screen--pizarra .pz-size .pz-dot {
+  width: var(--d);
+  height: var(--d);
+  border-radius: 50%;
+  background: var(--pz-dot, #ff3b30);
+  box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.55);
+  pointer-events: none;
+}
+.screen--pizarra[data-tool='goma'] .pz-size .pz-dot { box-shadow: 0 0 0 2px var(--ink); background: #fff; outline: 2px dashed rgba(43, 34, 64, 0.35); outline-offset: 2px; }
+.screen--pizarra .pz-bgbtn .icon { width: 72%; height: 72%; }
+
+.screen--pizarra .pz-palette-wrap { min-width: 0; min-height: 0; }
+.screen--pizarra .pz-palette { display: grid; gap: 6px; padding: 8px; transition: opacity 0.2s; }
+.screen--pizarra .pz-palette--off { opacity: 0.45; }
+.screen--pizarra .pz-swatch {
+  width: var(--pz-sw);
+  height: var(--pz-sw);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.55), 0 0 0 2px rgba(43, 34, 64, 0.35), 0 3px 0 rgba(43, 34, 64, 0.16);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.screen--pizarra .pz-swatch--white { box-shadow: inset 0 0 0 3px #f1edf7, 0 0 0 2px rgba(43, 34, 64, 0.45), 0 3px 0 rgba(43, 34, 64, 0.16); }
+.screen--pizarra .pz-swatch:active { transform: scale(0.9); }
+.screen--pizarra .pz-swatch.active {
+  transform: scale(1.12);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.85), 0 0 0 4px var(--ink), 0 4px 8px rgba(43, 34, 64, 0.25);
+}
+.screen--pizarra .pz-swatch:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+
+/* Horizontal: panel a la derecha, en columna. */
+.screen--pizarra.pz--land .pz-panel {
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 9px calc(var(--gap) + 2px) 8px 6px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  scrollbar-width: none;
+}
+.screen--pizarra.pz--land .pz-panel::-webkit-scrollbar { display: none; }
+.screen--pizarra.pz--land .pz-row1 { flex-direction: column; }
+.screen--pizarra.pz--land .pz-sizes { grid-template-columns: repeat(2, var(--btn-sm)); }
+.screen--pizarra.pz--land .pz-palette-wrap { overflow: visible; touch-action: pan-y; }
+.screen--pizarra.pz--land .pz-palette { grid-template-columns: repeat(2, var(--pz-sw)); }
+/* Pantallas bajas (notebook con la barra del navegador, tablet de 7"): la paleta pasa a 4 columnas (4×4)
+   para que entren todos los colores sin scroll (lo decide relayout() midiendo). */
+.screen--pizarra.pz--land.pz-pal4 .pz-palette { grid-template-columns: repeat(4, var(--pz-sw)); }
+.screen--pizarra.pz--land.pz-pal4 .pz-row1 { flex-direction: row; flex-wrap: wrap; justify-content: center; max-width: calc(4 * var(--pz-sw) + 3 * 6px + 16px); }
+.screen--pizarra.pz--land.pz-pal-tight { --pz-sw: 44px; }
+.screen--pizarra.pz--land.pz-pal-tight .pz-palette { gap: 4px; }
+
+/* Vertical: panel abajo, en filas. */
+.screen--pizarra.pz--port .pz-panel {
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--gap) calc(var(--gap) + 2px);
+}
+.screen--pizarra.pz--port .pz-sizes { grid-auto-flow: column; }
+.screen--pizarra.pz--port .pz-stage { padding-right: 22px; }
+.screen--pizarra.pz--port .pz-palette-wrap { max-width: 100%; }
+.screen--pizarra.pz--port .pz-palette { grid-auto-flow: column; grid-template-rows: repeat(2, var(--pz-sw)); }
+/* Si 2 filas de 8 no entran a lo ancho (celulares): 3 filas (6 + 6 + 4), con círculos de 46 px bien separados. */
+.screen--pizarra.pz--port.pz-prow3 .pz-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: calc(6 * var(--pz-sw) + 5 * var(--pz-pgap, 7px) + 16px);
+  max-width: 100%;
+  gap: 6px var(--pz-pgap, 7px);
+}
+
+/* Celulares */
+.screen--pizarra.pz--compact .pz-stage { padding: 9px; }
+.screen--pizarra.pz--compact.pz--port .pz-stage { padding-right: 16px; }
+.screen--pizarra.pz--compact .pz-board { border-radius: 14px; box-shadow: 0 0 0 4px #fff, 0 0 0 6px rgba(43, 34, 64, 0.1), 0 6px 16px rgba(43, 34, 64, 0.18); }
+.screen--pizarra.pz--compact .pz-board--chalk { box-shadow: 0 0 0 5px #c68a4e, 0 0 0 7px #8d5a33, 0 6px 16px rgba(43, 34, 64, 0.25); }
+.screen--pizarra.pz--compact .mode-tabs .btn { width: var(--btn-sm); height: var(--btn-sm); }
+.screen--pizarra.pz--compact .pz-top { padding: 6px var(--gap) 2px; }
+.screen--pizarra.pz--compact .pz-tools { gap: 6px; padding-left: var(--gap); padding-right: 10px; } /* la insignia del sello no se recorta */
+.screen--pizarra.pz--compact .pz-tools .btn { width: var(--btn-sm); height: var(--btn-sm); }
+.screen--pizarra.pz--compact .pz-tools { grid-template-rows: repeat(var(--pz-rows, 9), var(--btn-sm)); }
+.screen--pizarra.pz--compact .pz-stamp-badge { width: 24px; height: 24px; right: -5px; bottom: -5px; }
+.screen--pizarra.pz--compact .pz-stamp-badge canvas { width: 24px !important; height: 24px !important; }
+.screen--pizarra.pz--compact.pz--port .pz-palette { padding: 6px 8px; }
+.screen--pizarra.pz--compact.pz--port .pz-swatch.active {
+  transform: scale(1.06);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.85), 0 0 0 3px var(--ink), 0 3px 6px rgba(43, 34, 64, 0.25);
+}
+.screen--pizarra.pz--compact.pz--port .pz-row1 { gap: 6px; }
+.screen--pizarra.pz--compact.pz--port .pz-actions { gap: 6px; margin-left: 4px; }
+.screen--pizarra.pz--compact.pz--port .pz-actions .btn,
+.screen--pizarra.pz--compact.pz--port .pz-bgbtn { width: var(--btn-sm); height: var(--btn-sm); }
+.screen--pizarra.pz--compact.pz--port .pz-done { width: var(--btn); padding: 0; }
+.screen--pizarra.pz--compact.pz--port .pz-done .btn-text { display: none; }
+.screen--pizarra.pz--compact.pz--port .pz-done .icon { width: 70%; height: 70%; }
+.screen--pizarra.pz--compact.pz--land .pz-panel { gap: 6px; }
+.screen--pizarra.pz--compact.pz--land .pz-bgbtn { width: var(--btn-sm); height: var(--btn-sm); }
+.screen--pizarra.pz--compact.pz--land .pz-top { padding-bottom: 0; }
+
+/* ---------- Selectores (sellos y fondo) — se abren en un modal fuera de la pantalla ---------- */
+.modal-back.pz-modal .modal { padding: 18px 18px 22px; }
+.pz-pick-head { display: flex; justify-content: center; height: 56px; margin: 0 56px 10px; }
+.pz-pick-head .icon { width: 56px; height: 56px; }
+.pz-pick-grid { display: grid; gap: 12px; justify-content: center; }
+.pz-pick-grid--stamps { grid-template-columns: repeat(8, 92px); }
+.pz-pick-grid--bg { grid-template-columns: repeat(5, 132px); }
+.pz-pick {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: #fff8ea;
+  box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.12), 0 3px 0 rgba(43, 34, 64, 0.12);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.12s ease, box-shadow 0.12s;
+}
+.pz-pick:active { transform: scale(0.93); }
+.pz-pick.active { box-shadow: 0 0 0 4px var(--ink), 0 4px 10px rgba(43, 34, 64, 0.2); background: #fff1c9; }
+.pz-pick--bg { width: 132px; height: 96px; border-radius: 18px; background: #fff; }
+.pz-pick--bg canvas { border-radius: 12px; box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.2); }
+/* Tablet vertical: un poco más chicos para que entren 8 sellos y 5 fondos por fila. */
+@media (max-width: 800px) {
+  .pz-pick-grid { gap: 10px; }
+  .pz-pick-grid--stamps { grid-template-columns: repeat(8, 78px); }
+  .pz-pick { width: 78px; height: 78px; }
+  .pz-pick canvas { width: 68px !important; height: 68px !important; }
+  .pz-pick-grid--bg { grid-template-columns: repeat(5, 116px); }
+  .pz-pick--bg { width: 116px; height: 86px; }
+  .pz-pick--bg canvas { width: 104px !important; height: 73px !important; }
+}
+@media (max-width: 600px), (max-height: 520px) {
+  .pz-pick-grid { gap: 8px; }
+  .pz-pick-grid--stamps { grid-template-columns: repeat(8, 76px); }
+  .pz-pick { width: 76px; height: 76px; border-radius: 18px; }
+  .pz-pick canvas { width: 64px !important; height: 64px !important; }
+  .pz-pick-grid--bg { grid-template-columns: repeat(5, 94px); }
+  .pz-pick--bg { width: 94px; height: 72px; border-radius: 16px; }
+  .pz-pick--bg canvas { width: 82px !important; height: 58px !important; border-radius: 10px; }
+  .pz-pick-head { height: 44px; margin-bottom: 6px; }
+  .pz-pick-head .icon { width: 44px; height: 44px; }
+}
+
+/* Celular vertical: sellos de a 4 y fondos de a 2 (5 filas parejas). */
+@media (max-width: 600px) {
+  .pz-pick-grid--stamps { grid-template-columns: repeat(4, 76px); }
+  .pz-pick-grid--bg { grid-template-columns: repeat(2, 132px); }
+  .pz-pick--bg { width: 132px; height: 92px; }
+  .pz-pick--bg canvas { width: 118px !important; height: 80px !important; }
+}
+@media (max-width: 380px) {
+  .pz-pick-grid--stamps { grid-template-columns: repeat(4, 68px); }
+  .pz-pick { width: 68px; height: 68px; }
+  .pz-pick canvas { width: 58px !important; height: 58px !important; }
+  .pz-pick--bg { width: 124px; height: 88px; }
+  .pz-pick--bg canvas { width: 112px !important; height: 76px !important; }
+  .pz-pick-grid--bg { grid-template-columns: repeat(2, 124px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen--pizarra .pz-board.pz-shake { animation: none; }
+}
+
+/* Celular horizontal: grosores en fila y paleta de 4×4 (círculos de 46 px), así entra todo sin scroll.
+   El botón de fondo va en la columna de herramientas (ver relayout). */
+.screen--pizarra.pz--compact.pz--land .pz-sizes { grid-template-columns: repeat(4, var(--btn-sm)); gap: 6px; }
+.screen--pizarra.pz--compact.pz--land .pz-row1 { gap: 6px; }
+.screen--pizarra.pz--compact.pz--land .pz-palette { grid-template-columns: repeat(4, var(--pz-sw)); gap: 5px; padding: 5px; }
+.screen--pizarra.pz--compact.pz--land .pz-swatch.active {
+  transform: scale(1.06);
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.85), 0 0 0 3px var(--ink), 0 3px 6px rgba(43, 34, 64, 0.25);
+}
+
+/* Celulares angostos (≤ 380 px): todo un poquito más chico para que nada se salga. */
+@media (max-width: 380px) {
+  .screen--pizarra { --btn: 50px; --btn-sm: 46px; --gap: 6px; }
+  .screen--pizarra .mode-tabs { gap: 3px; padding: 4px; }
+  .screen--pizarra.pz--compact.pz--port .pz-row1,
+  .screen--pizarra.pz--compact.pz--port .pz-actions,
+  .screen--pizarra.pz--compact.pz--port .pz-sizes { gap: 4px; }
+}
+
+/* Selector cerrándose (se desvanece 200 ms): no atrapa el toque siguiente sobre la pizarra. */
+.modal-back.pz-modal:not(.in) { pointer-events: none; }
+
+/* Celulares muy angostos (≤ 340 px, p. ej. 320×568): botones de 46 px y menos aire entre ellos. */
+@media (max-width: 340px) {
+  .screen--pizarra { --btn: 46px; --gap: 4px; --pz-pgap: 4px; }
+  .screen--pizarra.pz--compact.pz--port.pz-prow3 .pz-palette { padding: 6px 4px; width: calc(6 * var(--pz-sw) + 5 * 4px + 8px); }
+  .screen--pizarra.pz--compact .pz-tools { gap: 5px; padding-left: 6px; padding-right: 9px; }
+  .screen--pizarra.pz--compact.pz--port .pz-stage { padding-left: 3px; }
+  .screen--pizarra.pz--compact.pz--port .pz-stage { padding-right: 13px; }
+}
