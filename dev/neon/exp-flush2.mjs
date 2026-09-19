@@ -1,0 +1,20 @@
+import { launch, appUrl, multiStroke, rect, SHOTS } from '../lib.mjs';
+import path from 'node:path'; import fs from 'node:fs';
+const prof = path.join(SHOTS, 'neon', '_perfil-exp2'); fs.rmSync(prof, { recursive: true, force: true });
+const t = await launch({ size: 'tablet', persistent: prof });
+const { page } = t;
+await page.goto(appUrl('neon'));
+await page.waitForFunction(() => CL.neon && CL.neon.debug && CL.neon.debug.ready);
+const r = await rect(page, '.neon-stage');
+await multiStroke(page, [[[r.x + 100, r.y + 100], [r.x + 400, r.y + 200]]], { steps: 10 });
+await page.waitForTimeout(50);
+await page.evaluate(() => {
+  const w0 = console.warn;
+  console.warn = (...a) => { localStorage.warns = (localStorage.warns || '') + a.map(String).join(' ') + '|'; w0(...a); };
+  addEventListener('pagehide', () => { localStorage.dbg = JSON.stringify({ pend: CL.neon.debug && CL.neon.debug.pending, cur: CL.router.current }); });
+  addEventListener('visibilitychange', () => { localStorage.vis = document.visibilityState; });
+});
+await page.reload();
+await page.waitForTimeout(800);
+console.log(await page.evaluate(async () => ({ dbg: localStorage.dbg, warns: localStorage.warns, vis: localStorage.vis, n: (await CL.db.works.list({ kind: 'neon' })).length })));
+await t.close();

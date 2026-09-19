@@ -1,0 +1,263 @@
+/* Colorinche — modo neón (pizarra oscura con trazos que brillan). */
+
+.screen--neon {
+  --nb: 58px;          /* botones de los paneles */
+  --nb-gap: 8px;
+  --neon-c: #ff4fd8;   /* color elegido (lo actualiza neon.js) */
+  --neon-line: rgba(170, 140, 255, 0.22);
+  color: #fff;
+  background:
+    radial-gradient(90% 70% at 50% 0%, #1f1344 0%, rgba(31, 19, 68, 0) 70%),
+    #0b0618;
+}
+@media (max-width: 600px), (max-height: 520px) {
+  .screen--neon { --nb: 46px; --nb-gap: 6px; }
+}
+
+/* ---------- Barra superior ---------- */
+.screen--neon .neon-top { position: relative; z-index: 2; }
+.screen--neon .mode-tabs { background: rgba(255, 255, 255, 0.82); }
+.screen--neon .neon-actions { display: flex; align-items: center; gap: var(--gap); }
+.screen--neon .neon-done .btn-text { display: none; }
+.screen--neon .neon-done.neon-shake { animation: neon-shake 0.45s ease; }
+@media (min-width: 900px) and (min-height: 600px) {
+  .screen--neon .neon-done { width: auto; padding: 0 22px 0 12px; border-radius: 999px; }
+  .screen--neon .neon-done .btn-text { display: inline; color: #fff; }
+  .screen--neon .neon-done .icon { width: calc(var(--btn) * 0.62); height: calc(var(--btn) * 0.62); }
+}
+@keyframes neon-shake {
+  0%, 100% { transform: none; }
+  25% { transform: translateX(-6px) rotate(-5deg); }
+  50% { transform: translateX(6px) rotate(5deg); }
+  75% { transform: translateX(-3px); }
+}
+
+/* ---------- Distribución: paneles a los costados (horizontal) o abajo (vertical) ---------- */
+.neon-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: var(--gap);
+  padding: 0 var(--gap) var(--gap);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'colors stage tools';
+}
+
+.neon-panel {
+  align-self: center;
+  justify-self: center;
+  padding: 10px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1.5px var(--neon-line), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.neon-colors {
+  grid-area: colors;
+  display: grid;
+  grid-template-columns: repeat(2, var(--nb));
+  gap: var(--nb-gap);
+}
+.neon-tools {
+  grid-area: tools;
+  display: flex;
+  gap: calc(var(--nb-gap) + 4px);
+}
+.neon-sizes, .neon-mirrors {
+  display: grid;
+  grid-auto-flow: row;
+  gap: var(--nb-gap);
+  align-content: start;
+}
+.neon-actions-slot, .neon-done-slot { display: none; }
+
+/* Horizontal con altura de sobra (tablet, compu): una sola columna por panel, más pizarra. */
+@media (orientation: landscape) and (min-height: 730px) {
+  .neon-colors { grid-template-columns: var(--nb); }
+  .neon-tools { flex-direction: column; }
+  .neon-mirrors { padding-top: calc(var(--nb-gap) + 4px); border-top: 1.5px solid var(--neon-line); }
+}
+/* Horizontal bajito (celular, compu con barra del navegador): grosores y espejos en dos columnas,
+   separadas por una rayita para que se vean como dos grupos. */
+@media (orientation: landscape) and (max-height: 729.98px) {
+  .neon-mirrors { padding-left: calc(var(--nb-gap) + 4px); border-left: 1.5px solid var(--neon-line); }
+}
+@media (orientation: portrait) {
+  .neon-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'stage' 'colors' 'tools';
+  }
+  .neon-colors { grid-template-columns: repeat(9, var(--nb)); }
+  .neon-sizes, .neon-mirrors { grid-auto-flow: column; }
+  .neon-tools { align-items: center; }
+  .neon-mirrors { padding-left: calc(var(--nb-gap) + 4px); border-left: 1.5px solid var(--neon-line); }
+}
+/* Celular vertical: colores en dos filas con "¡Terminé!" al lado (lejos de los espejos);
+   grosores + borrar en una fila y espejos en otra. */
+@media (orientation: portrait) and (max-width: 560px) {
+  .neon-body {
+    row-gap: 8px;
+    column-gap: 0;
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr);
+    grid-template-areas: 'stage stage stage stage' '. colors done .' 'tools tools tools tools';
+  }
+  .neon-colors { grid-template-columns: repeat(5, var(--nb)); padding: 8px; }
+  .neon-done-slot { grid-area: done; display: flex; align-items: center; padding-left: 8px; }
+  .neon-tools {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas: 'sizes actions' 'mirrors mirrors';
+    justify-content: center;
+    column-gap: 14px;
+    row-gap: 14px;
+  }
+  .neon-sizes { grid-area: sizes; }
+  .neon-mirrors { grid-area: mirrors; justify-self: center; padding-left: 0; border-left: 0; }
+  .neon-actions-slot { grid-area: actions; display: flex; padding-left: 12px; border-left: 1.5px solid var(--neon-line); }
+  .screen--neon .neon-actions-slot .btn, .screen--neon .neon-done-slot .btn { width: var(--nb); height: var(--nb); }
+  .screen--neon .neon-done-slot .btn .icon { width: 62%; height: 62%; }
+}
+
+/* ---------- Botones de los paneles (oscuros, con luz) ---------- */
+.neon-panel .btn {
+  width: var(--nb);
+  height: var(--nb);
+  background: #1a1133;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(170, 140, 255, 0.2);
+}
+.neon-panel .btn:active { box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(170, 140, 255, 0.3); }
+.neon-panel .btn.active {
+  background: #2a1b52;
+  box-shadow: 0 0 0 3px #fff, 0 0 18px 4px rgba(255, 255, 255, 0.28);
+  transform: scale(1.07);
+}
+.neon-panel .btn .icon { width: 82%; height: 82%; }
+.neon-panel .neon-actions-slot .btn { background: var(--paper); }
+.neon-panel .neon-actions-slot .btn-go { background: var(--green); }
+.neon-panel .neon-actions-slot .btn .icon { width: 62%; height: 62%; }
+
+.neon-dot {
+  display: block;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.neon-swatch .neon-dot {
+  width: 56%;
+  height: 56%;
+  background: radial-gradient(circle, #fff 0 20%, var(--c) 52% 100%);
+  box-shadow: 0 0 8px 2px var(--c), 0 0 20px 3px var(--c);
+}
+.neon-swatch.active { box-shadow: 0 0 0 3px #fff, 0 0 20px 5px var(--c) !important; }
+.neon-swatch--rainbow .neon-dot {
+  background:
+    radial-gradient(circle, #fff 0 18%, rgba(255, 255, 255, 0) 46%),
+    conic-gradient(#ff3b55, #ffec3d, #a6ff3a, #2ef2ff, #3f7cff, #b65cff, #ff4fd8, #ff3b55);
+  box-shadow: 0 0 9px 2px rgba(255, 79, 216, 0.8), 0 0 18px 4px rgba(46, 242, 255, 0.45);
+}
+.neon-swatch--rainbow.active { box-shadow: 0 0 0 3px #fff, 0 0 20px 5px rgba(180, 120, 255, 0.8) !important; }
+
+.neon-size .neon-dot {
+  background: radial-gradient(circle, #fff 0 24%, var(--neon-c) 58% 100%);
+  box-shadow: 0 0 6px 1px var(--neon-c), 0 0 14px 2px var(--neon-c);
+}
+.neon-rainbow .neon-size .neon-dot {
+  background:
+    radial-gradient(circle, #fff 0 22%, rgba(255, 255, 255, 0) 50%),
+    conic-gradient(#ff3b55, #ffec3d, #a6ff3a, #2ef2ff, #3f7cff, #b65cff, #ff4fd8, #ff3b55);
+  box-shadow: 0 0 6px 1px rgba(255, 79, 216, 0.7), 0 0 14px 2px rgba(46, 242, 255, 0.4);
+}
+
+/* ---------- Pizarra ---------- */
+.neon-stage {
+  grid-area: stage;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  background:
+    radial-gradient(62.5% 62.5% at 50% 45%, #26164d 0%, #150c31 55%, #090514 100%),
+    #090514;
+  box-shadow: inset 0 0 0 1.5px var(--neon-line), inset 0 0 60px rgba(0, 0, 0, 0.55), 0 12px 34px rgba(0, 0, 0, 0.45);
+  cursor: crosshair;
+  isolation: isolate;
+}
+.neon-paint, .neon-fx, .neon-guide {
+  position: absolute;
+  pointer-events: none;
+}
+.neon-paint { will-change: opacity; }
+.neon-fx, .neon-guide { left: 0; top: 0; width: 100%; height: 100%; }
+
+.neon-guide {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  fill: none;
+  stroke: rgba(205, 190, 255, 0.28);
+  stroke-width: 2;
+  stroke-dasharray: 5 11;
+  stroke-linecap: round;
+}
+.neon-guide circle { stroke-dasharray: none; stroke: rgba(205, 190, 255, 0.4); fill: rgba(205, 190, 255, 0.12); }
+.neon-mirrored .neon-guide { opacity: 1; }
+.neon-guide.pulse { animation: neon-guide-pulse 0.7s ease; }
+@keyframes neon-guide-pulse {
+  0% { opacity: 0.2; }
+  35% { opacity: 1; stroke: rgba(230, 220, 255, 0.75); }
+  100% { opacity: 1; }
+}
+
+/* Manito de ayuda cuando la pizarra está vacía. */
+.neon-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+  pointer-events: none;
+  opacity: 0;
+  filter: drop-shadow(0 0 10px rgba(255, 79, 216, 0.75)) drop-shadow(0 0 22px rgba(46, 242, 255, 0.4));
+  transition: opacity 0.35s ease;
+}
+.neon-ready .neon-hint { opacity: 0.9; animation: neon-hint 2.2s ease-in-out infinite; }
+.neon-ready .neon-hint.hide { opacity: 0; animation: none; }
+.neon-hint .icon { width: 100%; height: 100%; }
+@keyframes neon-hint {
+  0%, 100% { transform: translate(-18px, 6px) rotate(-8deg); }
+  50% { transform: translate(18px, -6px) rotate(8deg); }
+}
+
+/* Borrar todo: la pizarra se limpia en el acto y el lienzo viejo ("fantasma", debajo del nuevo)
+   parpadea como un cartel de neón que se apaga y se desvanece. */
+.neon-paint.neon-ghost { animation: neon-off 1.05s linear forwards; }
+.neon-clearing .neon-guide { opacity: 0.15; }
+@keyframes neon-off {
+  0% { opacity: 1; }
+  7% { opacity: 0.25; }
+  12% { opacity: 1; }
+  19% { opacity: 0.1; }
+  25% { opacity: 0.85; }
+  33% { opacity: 0.05; }
+  38% { opacity: 0.6; }
+  46% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-paint.neon-ghost { animation: neon-fade 0.4s ease forwards; }
+  .neon-ready .neon-hint { animation: none; }
+  @keyframes neon-fade { to { opacity: 0; } }
+}
+.neon-panel .btn-hold .hold-hint .icon { width: 100%; height: 100%; }
+
+/* Festejo de "¡Terminé!": el velo claro del núcleo lava la pantalla oscura; acá va un resplandor
+   rosado sobre la noche, así los tubos siguen brillando y los confites resaltan. (El festejo cuelga
+   del <body>, por eso se usa el data-screen que pone el router.) */
+body[data-screen='neon'] .celebrate {
+  background: radial-gradient(circle at center, rgba(255, 79, 216, 0.2), rgba(11, 6, 24, 0.3) 70%);
+}
+body[data-screen='neon'] .celebrate-badge {
+  filter: drop-shadow(0 0 14px rgba(255, 236, 61, 0.75)) drop-shadow(0 0 34px rgba(255, 79, 216, 0.5));
+}

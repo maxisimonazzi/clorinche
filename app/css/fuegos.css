@@ -1,0 +1,174 @@
+/* Colorinche — modo fuegos artificiales (ruta 'fuegos'). */
+
+.screen--fuegos {
+  background: #04061c;
+  color: #fff;
+}
+
+/* Cielo + efectos a pantalla completa (también debajo de las barras). */
+.screen--fuegos .fw-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: linear-gradient(#04061c, #0f0d3a 42%, #291a5c 72%, #5b2b82);
+}
+.screen--fuegos .fw-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.screen--fuegos .fw-fx { cursor: crosshair; }
+
+/* Barra superior: flota sobre el cielo y deja dibujar en los huecos. */
+.screen--fuegos .fw-top {
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
+.screen--fuegos .fw-top > * { pointer-events: auto; }
+.screen--fuegos .fw-top > .spacer { pointer-events: none; }
+.screen--fuegos .mode-tabs { background: rgba(255, 255, 255, 0.94); }
+
+/* ---------- Selector de color de la mecha ---------- */
+.screen--fuegos .fw-colors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px; /* deja lugar al anillo del color elegido */
+  border-radius: 999px;
+  background: rgba(14, 10, 44, 0.78);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.16), 0 8px 22px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+.screen--fuegos .fw-swatch.btn {
+  background: #1d1850;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+.screen--fuegos .fw-dot {
+  width: 56%;
+  height: 56%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #fff 0 18%, var(--c) 46%);
+  box-shadow: 0 0 10px 3px var(--c);
+  pointer-events: none;
+}
+.screen--fuegos .fw-swatch.btn .icon { width: 70%; height: 70%; }
+.screen--fuegos .fw-swatch--azar.btn {
+  background:
+    radial-gradient(circle, #1d1850 58%, transparent 60%),
+    conic-gradient(#ff4d6d, #ff9a2e, #ffe14d, #5dff8f, #4de1ff, #7088ff, #c07bff, #ff6fd8, #ff4d6d);
+}
+.screen--fuegos .fw-swatch.btn.active {
+  /* Sólo el anillo blanco y el brillo: sin agrandarse, así no se sale de la cápsula. */
+  box-shadow: 0 0 0 3px #fff, 0 0 12px 3px var(--c, #ffe14d);
+  transform: none;
+}
+.screen--fuegos .fw-swatch.btn:focus-visible { box-shadow: 0 0 0 4px var(--blue); }
+
+/* Fuera de la barra: flota abajo al centro (sobre el pueblito, donde casi no se dibuja). */
+.screen--fuegos > .fw-colors--float {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: calc(10px + var(--safe-b));
+  transform: translateX(-50%);
+  max-width: calc(100% - 16px);
+}
+/* Angosto (celulares verticales): dos filas compactas (dado + 4 colores / 4 colores). */
+@media (max-width: 499px) {
+  .screen--fuegos > .fw-colors--float {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(5 * var(--btn-sm) + 4 * 6px + 16px);
+    border-radius: calc(var(--btn-sm) / 2 + 8px);
+  }
+}
+
+/* Celulares de 320 px: la barra de arriba se ajusta para que entre entera. */
+@media (max-width: 340px) {
+  .screen--fuegos .fw-top { gap: 4px; padding-left: 6px; padding-right: 6px; }
+  .screen--fuegos .fw-top .mode-tabs { gap: 2px; padding: 4px; }
+}
+
+/* ---------- Pista animada (desaparece al primer toque) ---------- */
+.screen--fuegos .fw-hint {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 240px;
+  height: 150px;
+  margin: -75px 0 0 -120px;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.screen--fuegos .fw-hint--gone { opacity: 0; }
+.screen--fuegos .fw-hint-path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.screen--fuegos .fw-hint-path path {
+  fill: none;
+  stroke: #ffe14d;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 6px #ff9a2e);
+  animation: fw-hint-line 3s ease-in-out infinite;
+}
+.screen--fuegos .fw-hint-hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 64px;
+  height: 64px;
+  offset-path: path('M24 118C70 20 140 150 206 44');
+  offset-rotate: 0deg;
+  offset-anchor: 42% 18%;
+  animation: fw-hint-hand 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+.screen--fuegos .fw-hint-hand .icon { width: 100%; height: 100%; }
+.screen--fuegos .fw-hint-boom {
+  position: absolute;
+  left: 206px;
+  top: 44px;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #fff 0 6%, rgba(255, 225, 77, 0.9) 10%, rgba(255, 111, 216, 0.5) 24%, transparent 26%),
+    repeating-conic-gradient(rgba(255, 225, 77, 0.95) 0 4deg, transparent 4deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 0 20%, rgba(0, 0, 0, 0.9) 36%, transparent 70%);
+  mask: radial-gradient(circle, #000 0 20%, rgba(0, 0, 0, 0.9) 36%, transparent 70%);
+  opacity: 0;
+  transform: scale(0.2);
+  animation: fw-hint-boom 3s ease-out infinite;
+}
+@keyframes fw-hint-line {
+  0% { stroke-dashoffset: 100; opacity: 1; }
+  55% { stroke-dashoffset: 0; opacity: 1; }
+  70%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes fw-hint-hand {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  55% { offset-distance: 100%; opacity: 1; }
+  68%, 100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes fw-hint-boom {
+  0%, 58% { opacity: 0; transform: scale(0.2); }
+  66% { opacity: 1; transform: scale(0.9); }
+  85%, 100% { opacity: 0; transform: scale(1.25); }
+}
+
+@media (max-height: 520px) {
+  .screen--fuegos .fw-hint { transform: scale(0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen--fuegos .fw-hint-path path,
+  .screen--fuegos .fw-hint-hand,
+  .screen--fuegos .fw-hint-boom { animation-duration: 6s; }
+}
