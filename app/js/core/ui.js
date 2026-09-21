@@ -237,13 +237,29 @@
     if (closeButton) box.append(button({ icon: 'close', label: 'Cerrar', cls: 'modal-close', onTap: () => close() }));
     box.append(content);
     back.append(box);
-    back.addEventListener('pointerdown', (ev) => { if (ev.target === back) close(); });
+    // El fondo cierra sólo con un toque corto de un dedo (no con el pulgar que sostiene la tablet).
+    const downs = new Map();
+    back.addEventListener('pointerdown', (ev) => {
+      if (downs.size) for (const d of downs.values()) d.multi = true;
+      downs.set(ev.pointerId, { x: ev.clientX, y: ev.clientY, t: performance.now(), bg: ev.target === back, multi: downs.size > 0 });
+    });
+    back.addEventListener('pointerup', (ev) => {
+      const d = downs.get(ev.pointerId);
+      downs.delete(ev.pointerId);
+      if (!d || !d.bg || d.multi || ev.target !== back) return;
+      if (performance.now() - d.t < 600 && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 24) close();
+    });
+    back.addEventListener('pointercancel', (ev) => downs.delete(ev.pointerId));
+    const onKey = (ev) => { if (ev.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
     document.body.append(back);
     requestAnimationFrame(() => back.classList.add('in'));
     let closed = false;
     function close() {
       if (closed) return;
       closed = true;
+      document.removeEventListener('keydown', onKey);
+      back.style.pointerEvents = 'none'; // mientras se desvanece no se traga el próximo toque
       back.classList.remove('in');
       setTimeout(() => back.remove(), 200);
       if (onClose) onClose();
