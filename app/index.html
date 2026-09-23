@@ -11,6 +11,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Colorinche">
   <meta name="format-detection" content="telephone=no">
+  <!-- El manifest sólo se enlaza por http/https (en file:// el navegador lo rechaza y ensucia la consola). -->
+  <script>if (/^https?:$/.test(location.protocol)) document.write('<link rel="manifest" href="manifest.webmanifest">');</script>
+  <!-- Pestaña del navegador: versión simplificada del ícono (se lee bien a 16–32 px). -->
+  <link rel="icon" href="icons/icon-small.svg" type="image/svg+xml" sizes="any">
+  <link rel="icon" href="icons/icon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="icons/icon-16.png" type="image/png" sizes="16x16">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/core.css">
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/colorear.css">

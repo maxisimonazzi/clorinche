@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Colorinche en chiquito (pestaña del navegador, íconos de 16–48 px): sólo la gotita con carita,
+       grande y con contorno más grueso, sobre el mismo fondo. El arcoíris, las nubes y los brillitos del
+       ícono completo a este tamaño se vuelven manchas, así que acá no van. -->
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe066"/>
+      <stop offset="1" stop-color="#ff9f1c"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#f)"/>
+  <!-- Gotita con carita -->
+  <path d="M16 2.5C18.8 6.8 25.5 12.2 25.5 19.8a9.5 9.5 0 0 1-19 0C6.5 12.2 13.2 6.8 16 2.5z"
+        fill="#ff4f9a" stroke="#2b2240" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="M10.6 17.5c.4-2 1.3-3.8 2.5-5.3" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>
+  <rect x="11.6" y="17.4" width="2.8" height="4.2" rx="1.4" fill="#2b2240"/>
+  <rect x="17.6" y="17.4" width="2.8" height="4.2" rx="1.4" fill="#2b2240"/>
+  <path d="M13 24q3 2.6 6 0" fill="none" stroke="#2b2240" stroke-width="1.7" stroke-linecap="round"/>
+</svg>
