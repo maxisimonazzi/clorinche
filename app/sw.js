@@ -25,7 +25,7 @@
 'use strict';
 
 // <build-sw> (generado por dev/build-sw.mjs — no editar a mano)
-const VERSION = '2a80268372f2';
+const VERSION = 'ac468210056d';
 const FILES = [
   'index.html',
   'css/colorear.css',
@@ -65,6 +65,7 @@ const FILES = [
   'js/drawings/mar.js',
   'js/drawings/mascotas.js',
   'js/drawings/naturaleza.js',
+  'js/drawings/paisajes.js',
   'js/drawings/registry.js',
   'js/drawings/selva.js',
   'js/drawings/vehiculos.js',

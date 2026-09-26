@@ -41,7 +41,8 @@ app/                      ← la app (esto es lo que se abre / se publica)
   js/core/ns.js icons.js sound.js db.js ui.js router.js   (núcleo — no editar)
   js/main.js                                  (núcleo — no editar)
   js/drawings/registry.js                     (núcleo — no editar)
-  js/drawings/<categoria>.js                  → un agente por categoría
+  js/drawings/<categoria>.js                  → un agente por categoría (granja, mascotas, selva, mar, dinosaurios,
+                                                vehiculos, naturaleza, comida, fantasia, paisajes)
   js/coloring/regions.js fills.js engine.js picker.js colorear.js → agente colorear
   js/upload/subir.js                          → agente subir
   js/pizarra/brushes.js stamps.js pizarra.js  → agente pizarra
@@ -177,6 +178,19 @@ Formato: `CL.drawings.add('granja', 'vaca', 'Vaca', \`...\`)`, contenido dentro 
 6. Sin texto, sin degradés, sin opacidades, sin `<image>`, sin filtros, sin `<use>` ni `<defs>`, sin `transform`
    complicados (se permite `transform="translate()/rotate()/scale(-1,1)"` en grupos para espejar partes).
 7. Tamaño: cada dibujo < 6 KB de SVG si es posible (paths con curvas, números enteros).
+
+### 5 bis. Paisajes (escenarios completos, `js/drawings/paisajes.js`)
+
+Mismas reglas de línea, estilo y zonas, con estas diferencias:
+- La escena ocupa el lienzo ENTERO (1000 × 1000, sin marco): cielo, suelo, agua, etc. son zonas que llegan a los
+  bordes. El borde del lienzo cierra esas zonas, así que toda línea que toque un borde tiene que PASARSE del borde
+  (p. ej. el horizonte de x = −30 a x = 1030) para que no quede un hueco en la orilla.
+- Composición clara con 3–4 planos grandes (cielo / fondo / suelo / frente) y un protagonista reconocible en primer
+  plano (sombrilla y balde en la playa, iglú y pingüino en el polo, carpa y fogata en el camping...). Nada de
+  detalles chiquitos amontonados: cada elemento es una zona grande pintable. Entre ~15 y ~45 zonas pintables.
+- Pueden tener caritas simpáticas (sol, nubes, casita, planetas) en el mismo estilo que el resto de la app.
+- La zona que toca la esquina superior izquierda suele ser el cielo: en la vista previa sale celeste pálido; eso está
+  bien. Lo que NO puede pasar es que un objeto (una nube, una montaña) salga celeste pálido: eso es una fuga.
 
 Verificación: `node dev/drawings/preview.mjs <categoria>` genera `dev/shots/drawings/<categoria>.png` con cada zona
 pintada de un color al azar y el FONDO en celeste pálido fijo: si una parte del animal sale celeste pálido, se escapa

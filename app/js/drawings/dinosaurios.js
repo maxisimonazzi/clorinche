@@ -320,6 +320,82 @@
     );
   }
 
+  /* ---------- Piezas de los dibujos nuevos ---------- */
+
+  // Sistema girado: (x, y) locales alrededor de (cx, cy), girados `grados` → "X Y" con enteros.
+  const giro = (cx, cy, grados) => {
+    const c = Math.cos(grados * RAD), s = Math.sin(grados * RAD);
+    return (x, y) => `${R(cx + x * c - y * s)} ${R(cy + x * s + y * c)}`;
+  };
+
+  /* ---------- Dino bebé: asoma de un huevo grande; cáscara rota en zigzag abajo y un pedacito
+     de cáscara como sombrerito sobre la cabezota ---------- */
+  // Pinchito redondeado (tipo gomita) que sale de (bx, by) hacia (tx, ty), con base de ancho w.
+  function pinchito(bx, by, tx, ty, w) {
+    const L = Math.hypot(tx - bx, ty - by);
+    const P = local(bx, by, tx - bx, ty - by);
+    return `<path d="M${P(-w / 2, 0)}C${P(-w * 0.36, L * 0.36)} ${P(-w * 0.18, L)} ${P(0, L)}` +
+      `C${P(w * 0.18, L)} ${P(w * 0.36, L * 0.36)} ${P(w / 2, 0)}Z"/>`;
+  }
+
+  function bebeDino() {
+    // Cascarita de arriba: domo con el borde de abajo en zigzag, inclinada sobre la cabeza.
+    const g = giro(446, 216, -14);
+    const zz = [[90, 34], [60, 0], [30, 34], [0, 0], [-30, 34], [-60, 0], [-90, 34]];
+    const sombrero = `<path d="M${g(-120, 0)}C${g(-120, -80)} ${g(-66, -130)} ${g(0, -130)}` +
+      `C${g(66, -130)} ${g(120, -80)} ${g(120, 0)}${zz.map((p) => 'L' + g(p[0], p[1])).join('')}Z"/>`;
+    // Mitad de abajo del huevo: media elipse con el borde de arriba roto en zigzag.
+    // Debajo de cada manito el borde queda tapado: entra y sale por la mitad de los costados de la mano.
+    const borde = [[748, 600], [718, 648], [690, 598], [652, 624], [590, 610], [538, 662], [500, 596], [462, 662],
+      [410, 610], [348, 624], [310, 598], [282, 648], [252, 600]];
+    const cascara = `<path d="M222 652A278 243 0 0 0 778 652${borde.map((p) => 'L' + P2(p)).join('')}Z"/>`;
+    // Pinchitos en la nuca (detrás de la cabeza, con la base bien hundida).
+    const pincho = (a, w, h) => {
+      const b = pe(470, 358, 150, 150, a), t = pe(470, 358, 170 + h, 170 + h, a);
+      return pinchito(b[0], b[1], t[0], t[1], w);
+    };
+    // Manito redonda agarrada del borde (el bracito queda adentro del huevo), con tres deditos
+    // que cuelgan por afuera de la cáscara.
+    const mano = (cx, cy) => `<path d="M${cx - 46} ${cy + 18}C${cx - 52} ${cy - 30} ${cx - 30} ${cy - 60} ${cx} ${cy - 60}` +
+      `C${cx + 30} ${cy - 60} ${cx + 52} ${cy - 30} ${cx + 46} ${cy + 18}A16 16 0 0 1 ${cx + 15} ${cy + 22}` +
+      `A16 16 0 0 1 ${cx - 15} ${cy + 22}A16 16 0 0 1 ${cx - 46} ${cy + 18}Z"/>`;
+    return (
+      suelo() +
+      // Cuerpito adentro del huevo (lo tapa la cáscara)
+      `<path d="M352 700L352 600C348 540 326 480 318 440L682 440C674 480 652 540 648 600L648 700Z"/>` +
+      cascara +
+      mancha(356, 770, 46, 34, -20) + mancha(644, 760, 42, 31, 15) + mancha(500, 846, 44, 28, 0) +
+      mano(382, 630) + mano(618, 630) +
+      pincho(153, 112, 96) + pincho(182, 118, 104) + pincho(211, 112, 96) +
+      // Cabezota de 3/4 con hocico redondo hacia la derecha
+      `<path d="M462 170C560 170 632 225 650 300C718 296 782 338 782 408C782 478 728 516 650 522` +
+      `C596 542 540 546 470 546C360 546 290 470 290 360C290 250 368 170 462 170Z"/>` +
+      sombrero +
+      ojo(414, 350, 36, 45) + ojo(560, 344, 31, 40) +
+      cachete(348, 432, 34, 28) + cachete(606, 440, 32, 27) +
+      linea('M562 472Q646 520 730 460') +
+      nariz(736, 390, 20) + nariz(764, 404, 20)
+    );
+  }
+
+  /* ---------- Anquilosaurio: lomo acorazado (domo de placas en tres filas con pinchitos redondeados),
+     cola con porra al final, patas cortas y cabecita con cuernitos ---------- */
+  // Punto del camino P (tramos cúbicos) cuya x está más cerca de x.
+  function enX(P, x) {
+    let best = null;
+    for (let i = 0; 3 * i + 3 < P.length; i++) {
+      const p = cruce(P, i, 0, x);
+      if (!best || Math.abs(p[0] - x) < Math.abs(best[0] - x)) best = p;
+    }
+    return best;
+  }
+  // Punto del tramo i de P en t y normal hacia "afuera" (a la izquierda del sentido del camino).
+  function normal(P, i, t) {
+    const p = sobre(P, i, t), a = sobre(P, i, Math.max(0, t - 0.02)), b = sobre(P, i, Math.min(1, t + 0.02));
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    return [p, (b[1] - a[1]) / l, -(b[0] - a[0]) / l];
+  }
+
   // Púa cónica de lados rectos con la punta redonda (radio r), de (bx, by) hacia (tx, ty), base w.
   function pua(bx, by, tx, ty, w, r = 12) {
     const L = Math.hypot(tx - bx, ty - by);
@@ -327,9 +403,129 @@
     return `<path d="M${P(-w / 2, 0)}L${P(-r, L - r)}A${r} ${r} 0 0 1 ${P(r, L - r)}L${P(w / 2, 0)}Z"/>`;
   }
 
+  function anquilosaurio() {
+    // Silueta de una sola pieza: cola que sube desde la porra hasta la cadera, lomo largo y bajo,
+    // hombro y pecho; la panza es plana sobre las patas y vuelve por abajo de la cola.
+    const cuerpo = [[176, 704], [236, 690], [286, 630], [334, 540], [388, 440], [620, 412], [716, 470],
+      [792, 512], [812, 612], [808, 700], [806, 770], [786, 800], [736, 800]];
+    // Borde de abajo de la coraza (de la cola al hombro).
+    const borde = [cruce(cuerpo, 0, 0, 240), [360, 734], [620, 740], cruce(cuerpo, 2, 1, 664)];
+    // Placa ovalada de la coraza, a una altura k (0 = lomo, 1 = borde) entre el lomo y el borde.
+    const placa = (x, k) => {
+      const a = enX(cuerpo, x), b = enX(borde, x);
+      return `<ellipse cx="${x}" cy="${R(a[1] + (b[1] - a[1]) * k)}" rx="48" ry="34" stroke-width="12"/>`;
+    };
+    // Púa de punta redonda parada sobre el contorno (la base queda tapada por el cuerpo).
+    const espina = (i, t, h, w) => {
+      const [p, nx, ny] = normal(cuerpo, i, t);
+      return pua(R(p[0] - nx * 30), R(p[1] - ny * 30), R(p[0] + nx * h), R(p[1] + ny * h), w, 16);
+    };
+    return (
+      suelo() +
+      // Patas cortas y gruesas, de a pares
+      parPatas(300, 780, 104, 80) + parPatas(588, 780, 104, 80) +
+      // Púas de punta redonda por la cola y el lomo
+      espina(0, 0.36, 74, 94) + espina(0, 0.8, 80, 98) + espina(1, 0.15, 80, 98) + espina(1, 0.45, 82, 98) +
+      espina(1, 0.75, 80, 98) + espina(2, 0.3, 72, 96) +
+      // Cuerpo con la coraza (dos filas de placas ovaladas) y la panza lisa
+      `<path d="${d3(cuerpo)}L320 800C262 800 214 786 176 764Z"/>` +
+      linea(d3(borde)) +
+      placa(450, 0.3) + placa(570, 0.3) + placa(690, 0.34) + placa(370, 0.72) + placa(490, 0.72) + placa(610, 0.72) +
+      // Porra grande y redonda en la punta de la cola
+      `<ellipse cx="118" cy="734" rx="74" ry="62"/>` +
+      // Cabeza con hocico redondo
+      `<path d="M720 723C702 660 747 615 810 615C855 615 882 637 900 660C936 664 952 692 947 719` +
+      `C941 748 909 757 873 755C828 777 756 786 720 723Z"/>` +
+      ojo(818, 670, 27, 33) +
+      cachete(790, 724, 32, 26) +
+      linea('M842 738Q865 756 888 735') +
+      nariz(916, 694, 10)
+    );
+  }
+
+  /* ---------- Espinosaurio: vela grande en el lomo dividida en franjas, hocico largo de cocodrilo con
+     dientitos (tan chiquitos que quedan blancos, como en el cocodrilo), parado en dos patas ---------- */
+  function espinosaurio() {
+    // Vela: media elipse con el borde festoneado (una bocha por franja); las franjas se separan con
+    // líneas casi verticales que bajan hasta adentro del cuerpo (que las tapa).
+    const sx = 410, sy = 640, srx = 200, sry = 440;
+    const v = [0, 1, 2, 3, 4, 5].map((k) => pe(sx, sy, srx, sry, 180 + 30 * k));
+    let vela = `M${P2(v[0])}`;
+    for (let k = 1; k <= 5; k++) {
+      const r = R(Math.hypot(v[k][0] - v[k - 1][0], v[k][1] - v[k - 1][1]) * 0.62);
+      vela += `A${r} ${r} 0 0 1 ${P2(v[k])}`;
+    }
+    // Adelante la vela baja redondeada hasta el lomo (antes de llegar a la cabeza).
+    vela += `C${v[5][0] + 15} ${v[5][1] + 14} ${v[5][0] + 27} ${v[5][1] + 40} ${v[5][0] + 29} ${v[5][1] + 80}`;
+    const franjas = [1, 2, 3, 4].map((k) => `M${P2(v[k])}L${R(sx + (v[k][0] - sx) * 0.5)} 660`).join('');
+    // Boca: sonrisa larga por el hocico; dientitos de abajo que asoman sobre el labio (como el cocodrilo).
+    const boca = [[942, 438], [876, 456], [800, 462], [756, 450]];
+    const dientes = [0.14, 0.34, 0.54].map((t) => {
+      const a = sobre(boca, 0, t - 0.065), b = sobre(boca, 0, t + 0.065), m = sobre(boca, 0, t);
+      return `<path d="M${P2(a)}L${m[0]} ${m[1] - 30}L${P2(b)}Z" stroke-width="10"/>`;
+    }).join('');
+    return (
+      suelo() +
+      `<path d="${vela}Z"/>` + linea(franjas) +
+      // Cola larga que se afina
+      `<path d="M280 590C200 586 120 614 60 660C46 672 56 694 76 690C150 680 220 694 280 716Z"/>` +
+      // Patas (atrás del cuerpo)
+      pata(470, 108, 740) + pata(280, 116, 740) +
+      // Cuerpo con el cuello que sube hasta la cabeza, y manchas
+      `<path d="M220 650C214 560 300 510 420 508C500 506 570 500 620 470L700 430L750 460C744 540 716 600 690 660` +
+      `C660 740 560 776 440 776C320 776 226 740 220 650Z"/>` +
+      mancha(330, 610, 44, 32, -20) + mancha(470, 700, 46, 32, 0) + mancha(160, 656, 38, 26, -18) +
+      // Bracito
+      `<path d="M672 630C732 614 772 626 782 654C788 672 774 684 760 676C760 692 742 698 732 684` +
+      `C720 670 698 670 672 680Z"/>` +
+      // Cabeza con hocico largo de cocodrilo
+      `<path d="M640 450C630 370 680 312 756 310C806 308 836 326 856 346C894 354 928 364 942 392` +
+      `C956 424 950 470 918 490C872 512 780 518 720 514C674 510 644 486 640 450Z"/>` +
+      linea(d3(boca)) + dientes +
+      ojo(772, 380, 30, 38) +
+      cachete(704, 444, 32, 26) +
+      nariz(914, 390, 20)
+    );
+  }
+
+  /* ---------- Parasaurolofo: parado en dos patas, cresta larga en tubo curvada hacia atrás,
+     pico de pato y manchas en el lomo ---------- */
+  function parasaurolofo() {
+    return (
+      suelo() +
+      // Cola larga que baja hacia atrás
+      `<path d="M340 660C250 690 150 740 72 790C58 800 66 822 84 818C170 800 260 780 340 760Z"/>` +
+      // Patas (atrás del cuerpo)
+      pata(488, 100, 760) + pata(352, 112, 760) +
+      // Cuerpo parado (como un huevo inclinado) con manchas en el lomo
+      `<path d="M300 700C280 580 340 460 460 440C560 424 620 480 630 560C640 660 600 760 500 800` +
+      `C400 836 316 800 300 700Z"/>` +
+      mancha(390, 520, 44, 32, -40) + mancha(352, 640, 42, 30, -60) + mancha(460, 600, 40, 30, -20) +
+      // Cuello
+      `<path d="M500 470C520 400 560 340 600 300L680 330C650 380 620 440 610 520Z"/>` +
+      // Bracito
+      `<path d="M596 560C656 544 696 556 706 584C712 602 698 614 684 606C684 622 666 628 656 614` +
+      `C644 600 622 600 596 610Z"/>` +
+      // Cresta larga en tubo, curvada hacia atrás (la base queda tapada por la cabeza)
+      `<path d="M606 236C540 172 460 132 392 120C360 116 346 156 372 172C446 196 520 226 592 280Z"/>` +
+      // Cabeza con pico de pato
+      `<path d="M580 300C570 250 610 216 670 214C720 212 760 236 780 262L800 340C770 352 730 360 690 356` +
+      `C630 352 590 340 580 300Z"/>` +
+      `<path d="M760 264C810 252 860 262 870 292C878 318 856 340 820 342C790 344 770 340 756 330Z"/>` +
+      linea('M768 312Q816 322 858 308') +
+      ojo(690, 270, 30, 38) +
+      cachete(640, 318, 32, 26) +
+      nariz(838, 280, 10)
+    );
+  }
+
   add('trex', 'T-rex', trex());
   add('triceratops', 'Triceratops', triceratops());
   add('diplodocus', 'Diplodocus', diplodocus());
   add('estegosaurio', 'Estegosaurio', estegosaurio());
   add('pterodactilo', 'Pterodáctilo', pterodactilo());
+  add('bebe-dino', 'Dino bebé', bebeDino());
+  add('anquilosaurio', 'Anquilosaurio', anquilosaurio());
+  add('espinosaurio', 'Espinosaurio', espinosaurio());
+  add('parasaurolofo', 'Parasaurolofo', parasaurolofo());
 })(window.CL);

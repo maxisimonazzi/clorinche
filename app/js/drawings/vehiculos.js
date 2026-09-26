@@ -1,6 +1,7 @@
 /* Colorinche — js/drawings/vehiculos.js
    Dibujos para colorear de la categoría "Vehículos": auto, colectivo, camión de bomberos, tren,
-   avión y cohete. Vista lateral y tierna, con carita en el frente.
+   avión, cohete, barco, helicóptero, bicicleta, moto y globo aerostático. Vista lateral y tierna,
+   con carita en el frente (o en la chapa más grande: la panza de la moto, el canasto de la bici).
    Lienzo 1000 × 1000, contorno 16, detalles internos 10–12 (ver dev/ARQUITECTURA.md, sección 5).
    El orden importa: lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás.
    Reglas prácticas de esta categoría:
@@ -276,5 +277,163 @@
     <circle cx="444" cy="354" r="7" fill="#000" stroke="none"/><circle cx="556" cy="354" r="7" fill="#000" stroke="none"/>
     <circle cx="444" cy="466" r="7" fill="#000" stroke="none"/><circle cx="556" cy="466" r="7" fill="#000" stroke="none"/>
     ${carita(500, 585, 104, { rx: 25, ry: 31, cx: 32, cy: 74, sy: 62, sw: 56 })}
+  `);
+
+  /* ---------- Barco: velero con dos velas, mástil, banderita, casco con ojos de buey y olas ---------- */
+  // Ola: cinta de agua de alto h con el borde de arriba y el de abajo ondulados en fase (n medias ondas
+  // de ancho w y altura a, la primera hacia arriba) y las puntas redondeadas.
+  const ola = (x, y, n, w, a, h) => {
+    const ondas = (dx, dy) => `q${dx / 2} ${dy} ${dx} 0` + ` t${dx} 0`.repeat(n - 1);
+    const vuelta = n % 2 ? -2 * a : 2 * a; // el borde de abajo vuelve con la misma fase
+    return `<path d="M${x} ${y}${ondas(w, -2 * a)}a${h / 2} ${h / 2} 0 0 1 0 ${h}` +
+      `${ondas(-w, vuelta)}a${h / 2} ${h / 2} 0 0 1 0 ${-h}Z"/>`;
+  };
+  // Mar: dos cintas de olas, una debajo de la otra (la de abajo se dibuja después y tapa a la de arriba).
+  const mar = (x, y, n, w, a, h1, h2) => ola(x, y, n, w, a, h1 + 8) + ola(x, y + h1, n, w, a, h2);
+  add('barco', 'Barco', `
+    ${nube(835, 190, 95, 48, 7, 0.3)}
+    ${nube(165, 175, 70, 38, 6, 0.5)}
+    <path d="M474 78C540 84 600 104 662 134C600 160 540 176 474 182Z"/>
+    <path d="M476 130C392 212 256 350 186 470Q174 492 200 492H476Z"/>
+    <path d="M476 230C592 286 690 370 740 470Q750 492 726 492H476Z"/>
+    <rect x="452" y="50" width="46" height="560" rx="23"/>
+    <path d="M128 580C350 608 650 606 900 535C880 690 830 790 730 860H270C200 800 150 720 128 580Z"/>
+    <path d="M88 554C360 586 660 586 916 500A26 26 0 0 1 930 550C660 640 360 642 88 606A26 26 0 0 1 88 554Z"/>
+    <circle cx="245" cy="712" r="34"/><circle cx="350" cy="712" r="34"/>
+    ${carita(640, 680, 92)}
+    ${mar(100, 800, 10, 80, 18, 64, 64)}
+  `);
+
+  // Barra: tubo cerrado de ancho interior w con las puntas redondeadas (patines, cuadro de la bici).
+  // Varios recorridos en el mismo `d` se funden en una sola pieza.
+  const barra = (d, w = 36) =>
+    `<path d="${d}" fill="none" stroke-width="${w + 32}"/>` +
+    `<path d="${d}" fill="none" stroke="#fff" stroke-width="${w}"/>`;
+
+  /* ---------- Helicóptero: cabina burbuja con parabrisas, rotor de dos aspas, cola con rotor chico,
+     patines y nubecitas ---------- */
+  // Cabina: la curva de arriba-adelante se reparte entre la chapa y el parabrisas (comparten borde).
+  const hTecho = [[630, 285], [790, 285], [885, 380], [885, 495]];
+  const [, hVidrio0] = partir(hTecho, 0.04);
+  const [hVidrio] = partir(hVidrio0, 0.9);
+  // Todo bajado 30 u para que quede centrado en la hoja.
+  add('helicoptero', 'Helicóptero', `
+    <g transform="translate(0 30)">
+    ${nube(190, 770, 100, 50, 8, 0.2)}
+    ${nube(895, 290, 54, 32, 6, 0.4)}
+    ${barra('M515 670L495 785M735 670L755 785', 34)}
+    <ellipse cx="160" cy="335" rx="28" ry="52"/><ellipse cx="160" cy="475" rx="28" ry="52"/>
+    <path d="M400 420C320 400 240 385 170 382Q150 382 150 405Q150 428 170 428C240 440 320 480 400 545Z"/>
+    <circle cx="160" cy="405" r="26"/>
+    <rect x="535" y="170" width="50" height="140" rx="10"/>
+    <path d="M540 148L168 154Q132 156 132 178Q132 200 168 202L540 208Z"/>
+    <path d="M580 148L912 154Q948 156 948 178Q948 200 912 202L580 208Z"/>
+    <rect x="515" y="140" width="90" height="76" rx="26"/>
+    <path d="M345 485C345 365 480 285 630 285${C(hTecho)}C885 620 785 695 635 695C480 695 345 605 345 485Z"/>
+    <path d="M${P(hVidrio[0])}${C(hVidrio)}H700Q650 461 650 411Z"/>
+    ${carita(670, 555, 96, { rx: 28, ry: 35, cx: 38, cy: 76, sy: 64, sw: 50 })}
+    ${barra('M420 795H860Q905 795 915 750', 34)}
+    </g>
+  `);
+
+  /* ---------- Bicicleta: dos ruedas con rayos gruesos, cuadro, asiento, manubrio y canastito con flores ---------- */
+  // Rueda de bici: cubierta ancha, llanta, tres rayos que cruzan (seis gajos) y maza.
+  const ruedaBici = (x, y, r = 140, rl = 100) =>
+    `<circle cx="${x}" cy="${y}" r="${r}"/>` +
+    `<circle cx="${x}" cy="${y}" r="${rl}" stroke-width="12"/>` +
+    `<path d="M${x - rl} ${y}H${x + rl}M${x - R(rl / 2)} ${y - R(rl * 0.866)}L${x + R(rl / 2)} ${y + R(rl * 0.866)}` +
+    `M${x + R(rl / 2)} ${y - R(rl * 0.866)}L${x - R(rl / 2)} ${y + R(rl * 0.866)}" fill="none" stroke-width="12"/>` +
+    `<circle cx="${x}" cy="${y}" r="24" stroke-width="12"/>`;
+  // Tulipán: copa de tres pétalos con las puntas redondeadas (ancho 2a) y el tallo que baja hasta `yb`.
+  const tulipan = (x, y, yb, a = 38) => {
+    const h = R(a / 2);
+    return `<path d="M${x} ${y + 36}V${yb}" fill="none" stroke-width="12"/>` +
+      `<path d="M${x - a} ${y - 18}Q${x - a + 2} ${y - 36} ${x - a + 16} ${y - 24}L${x - h} ${y - 6}L${x - 9} ${y - 30}` +
+      `Q${x} ${y - 46} ${x + 9} ${y - 30}L${x + h} ${y - 6}L${x + a - 16} ${y - 24}Q${x + a - 2} ${y - 36} ${x + a} ${y - 18}` +
+      `C${x + a + 6} ${y + 18} ${x + R(a * 0.7)} ${y + 38} ${x} ${y + 38}C${x - R(a * 0.7)} ${y + 38} ${x - a - 6} ${y + 18} ${x - a} ${y - 18}Z"/>`;
+  };
+  // Todo subido 40 u para que quede centrado en la hoja.
+  add('bicicleta', 'Bicicleta', `
+    <g transform="translate(0 -40)">
+    ${calle()}
+    ${barra('M482 330L500 720M490 455L645 445M600 212Q636 212 645 240V505L775 710M645 495L500 720L245 710M490 470L245 710', 30)}
+    ${ruedaBici(245, 710)}${ruedaBici(775, 710)}
+    ${nube(500, 720, 46, 46, 10, 0, 0.55)}
+    <circle cx="500" cy="720" r="10" fill="#000" stroke="none"/>
+    <rect x="512" y="746" width="76" height="44" rx="18"/>
+    <path d="M410 322Q410 298 450 298L530 304Q556 308 550 328Q542 348 505 348L440 350Q410 350 410 332Z"/>
+    <rect x="556" y="190" width="74" height="44" rx="22"/>
+    ${tulipan(764, 196, 300, 38)}${tulipan(884, 250, 300, 38)}
+    <path d="M640 300H935L925 480Q921 505 896 505H665Q640 505 640 480Z"/>
+    ${carita(782, 400, 92)}
+    <rect x="628" y="296" width="316" height="48" rx="20"/>
+    </g>
+  `);
+
+  /* ---------- Moto: motito tipo vespa con panza redonda, asiento, escudo, manubrio, faro,
+     guardabarros y caño de escape ---------- */
+  // La panza (chapa de atrás) baja en curva hasta el piso; el piso sube al escudo, que termina en el
+  // cabezal con el faro en media luna. Todo subido 50 u (y la moto corrida 30 u a la derecha) para que
+  // quede centrado en la hoja.
+  add('moto', 'Moto', `
+    <g transform="translate(0 -50)">${calle()}</g>
+    <g transform="translate(30 -50)">
+    ${barra('M290 770L75 748', 40)}
+    <ellipse cx="63" cy="747" rx="11" ry="20" fill="#000"/>
+    ${rueda(255, 765, 88)}${rueda(765, 765, 88)}
+    <path d="M480 690H600C630 690 640 670 645 640C655 560 672 470 700 400H770C795 480 805 600 790 690Q780 740 735 740H480Z"/>
+    <path d="M460 478H245C160 478 110 540 110 615C110 690 155 735 225 735H610C540 735 480 640 460 478Z"/>
+    <path d="M160 488Q138 488 140 462Q144 424 198 422H450Q505 422 508 456Q511 490 470 490Z"/>
+    ${carita(300, 595, 96, { rx: 28, ry: 35, cx: 38, cy: 76, sy: 64, sw: 50 })}
+    <path d="M668 740C668 670 710 640 765 640C820 640 862 670 862 740Z"/>
+    <path d="M688 312L656 252" fill="none" stroke-width="12"/>
+    <circle cx="648" cy="230" r="30"/>
+    ${barra('M690 350L610 330', 30)}
+    <path d="M672 404Q646 318 712 312H822V404Z"/>
+    ${faro(822, 320, 398, 44, 1)}
+    </g>
+  `);
+
+  /* ---------- Globo aerostático: gajos, casquete, faldón, sogas, canasta de mimbre y nubes ---------- */
+  // Mitad derecha del globo en dos cúbicas (de la punta al ecuador y del ecuador a la boca). Las costuras
+  // de los gajos son la misma curva con el ancho escalado (x = 500 + k·(x − 500)), así siguen la forma.
+  const gA = [[500, 58], [668, 58], [800, 170], [800, 330]];
+  const gB = [[800, 330], [800, 470], [644, 552], [598, 624]];
+  const escalar = (k) => (c) => c.map(([x, y]) => [500 + (x - 500) * k, y]);
+  // Punto de una cúbica monótona en y a la altura y (bisección).
+  const aAltura = (c, y) => {
+    let a = 0, b = 1;
+    for (let i = 0; i < 30; i++) { const m = (a + b) / 2; if (partir(c, m)[1][0][1] < y) a = m; else b = m; }
+    return a;
+  };
+  // Costura: la curva escalada en k, a la derecha y (espejada) a la izquierda.
+  const meridiano = (k) => {
+    const [a, b] = [escalar(k)(gA), escalar(k)(gB)];
+    return `<path d="M500 58${C(a)}${C(b)}M500 58${C(esp(a))}${C(esp(b))}" fill="none" stroke-width="12"/>`;
+  };
+  // La boca (abajo) es una curva apenas panzona; el faldón la comparte.
+  const silGlobo = `M500 58${C(gA)}${C(gB)}Q500 650 ${1000 - gB[3][0]} ${gB[3][1]}${C(esp(rev(gB)))}${C(esp(rev(gA)))}Z`;
+  // Casquete: lo de arriba de y = 112; faldón: lo de abajo de y = 516 (ahí los gajos de afuera todavía
+  // son anchos: más abajo quedarían cuñas finitas contra el contorno).
+  const [cas] = partir(gA, aAltura(gA, 112));
+  const [, fal] = partir(gB, aAltura(gB, 516));
+  const casquete = `M${P(cas[3])}${C(rev(cas))}${C(esp(cas))}Q500 140 ${P(cas[3])}Z`;
+  const faldon = `M${P(fal[0])}${C(fal)}Q500 650 ${P([1000 - fal[3][0], fal[3][1]])}${C(esp(rev(fal)))}Q500 548 ${P(fal[0])}Z`;
+  // Todo bajado 20 u para que quede centrado en la hoja.
+  add('globo-aerostatico', 'Globo aerostático', `
+    <g transform="translate(0 20)">
+    ${nube(150, 560, 95, 48, 8, 0.2)}
+    ${nube(878, 118, 64, 36, 7, 0.4)}
+    ${nube(860, 760, 70, 36, 7, 0.1)}
+    <path d="M412 634L404 722M500 648V722M588 634L596 722" fill="none" stroke-width="12"/>
+    <path d="${silGlobo}"/>
+    ${meridiano(0.54)}${meridiano(0.8)}
+    <path d="${casquete}"/>
+    <path d="${faldon}"/>
+    ${carita(500, 318, 96, { rx: 28, ry: 35, cx: 38, cy: 76, sy: 64, sw: 50 })}
+    <path d="M408 756H592L580 858Q578 880 556 880H444Q422 880 420 858Z"/>
+    <path d="M469 756V880M531 756V880M414 818H586" fill="none" stroke-width="12"/>
+    <rect x="390" y="716" width="220" height="44" rx="20"/>
+    </g>
   `);
 })(window.CL);

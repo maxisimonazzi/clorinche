@@ -351,4 +351,215 @@
     ${ojo(684, 386, 25, 31)}${ojo(798, 402, 18, 24)}
   `);
 
+  /* ---------- Tigre ---------- */
+  // Gatito rayado parado de costado con la cabeza grande de frente (sin melena, así no se confunde con el
+  // león): orejas redondas, hocico blanco de dos lóbulos, rayas en cuña que nacen en el borde (frente,
+  // costados de la cara y lomo) y bandas que cruzan la cola.
+  // Raya en cuña: nace en el borde de la elipse E entre los ángulos a1 < a2 y se afina de a poco hasta T,
+  // donde termina redondeada con ancho `punta`.
+  function cuna(E, a1, a2, T, punta = 22) {
+    const p1 = pe(E[0], E[1], E[2], E[3], a1), p2 = pe(E[0], E[1], E[2], E[3], a2);
+    const M = lerp2(p1, p2, 0.5), L = Math.hypot(T[0] - M[0], T[1] - M[1]);
+    const u = [(T[0] - M[0]) / L, (T[1] - M[1]) / L];
+    let n = [-u[1], u[0]];
+    if (n[0] * (p2[0] - M[0]) + n[1] * (p2[1] - M[1]) < 0) n = [-n[0], -n[1]];
+    const w = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 2, h = punta / 2, m = (w + h) / 2 + w * 0.1;
+    const P = (al, s) => `${R(M[0] + u[0] * L * al + n[0] * s)} ${R(M[1] + u[1] * L * al + n[1] * s)}`;
+    return `<path d="M${p1}A${E[2]} ${E[3]} 0 0 1 ${p2}Q${P(0.5, m)} ${P(1, h)}` +
+      `C${P(1 + h / L * 1.3, h)} ${P(1 + h / L * 1.3, -h)} ${P(1, -h)}Q${P(0.5, -m)} ${p1}Z" stroke-width="12"/>`;
+  }
+  // Bandas que cruzan un tubo de ancho w (ver `tubo`) en los puntos t de la curva cúbica p.
+  const bandasTubo = (p, w, ts) => linea(ts.map((t) => {
+    const [x, y, nx, ny] = bz(p, t), k = (w / 2 + 10) / Math.hypot(nx, ny);
+    return `M${R(x - nx * k)} ${R(y - ny * k)}L${R(x + nx * k)} ${R(y + ny * k)}`;
+  }).join(''));
+  {
+    const H = [330, 375, 240, 202]; // cabeza: cx, cy, rx, ry
+    const B = [610, 650, 260, 155]; // cuerpo
+    const [cx, cy] = H;
+    const ph = (a, k = 0) => pe(H[0], H[1], H[2] + k, H[3] + k, a);
+    const F = (x, y) => `${cx + x} ${cy + y}`;
+    const lomo = (x1, x2, T, punta) => cuna(B, 360 - angX(B, x1), 360 - angX(B, x2), T, punta);
+    const oreja = (a) => {
+      const [x, y] = ph(a, 26); // asoman bastante, así la parte de adentro es grande
+      return `<circle cx="${x}" cy="${y}" r="76"/><circle cx="${x}" cy="${y}" r="36" stroke-width="12"/>`;
+    };
+    // Pata con deditos; la de atrás de cada par (corrida a la derecha y tapada) sólo muestra el dedito de afuera.
+    const pata = (x, atras) => `<rect x="${x}" y="700" width="104" height="238" rx="44"/>` +
+      linea((atras ? '' : `M${x + 35} 938q-4-16 0-30`) + `M${x + 69} 938q4-16 0-30`);
+    const par = (x) => pata(x + 80, true) + pata(x);
+    const cola = [[855, 615], [925, 595], [940, 460], [885, 390]];
+    const dy = R(48 * Math.sqrt(1 - (42 / 60) ** 2)); // cruce de abajo de los lóbulos del hocico
+    add('tigre', 'Tigre', `
+      ${tubo(`M${cola[0]}${C(cola)}`, 44)}
+      ${bandasTubo(cola, 44, [0.4, 0.62, 0.84])}
+      ${par(385)}${par(655)}
+      <ellipse cx="${B[0]}" cy="${B[1]}" rx="${B[2]}" ry="${B[3]}"/>
+      ${lomo(585, 650, [610, 690], 24)}${lomo(690, 755, [712, 700], 24)}${lomo(790, 845, [805, 672], 22)}
+      ${oreja(230)}${oreja(310)}
+      <ellipse cx="${cx}" cy="${cy}" rx="${H[2]}" ry="${H[3]}"/>
+      ${cuna(H, 262, 278, [cx, cy - 95], 20)}${cuna(H, 243, 257, [cx - 44, cy - 106], 20)}
+      ${cuna(H, 283, 297, [cx + 44, cy - 106], 20)}
+      ${cuna(H, 186, 204, [cx - 140, cy - 30], 20)}${cuna(H, 336, 354, [cx + 140, cy - 30], 20)}
+      ${hocicoLeon(cx, cy + 78, 60, 48, 42)}
+      <path d="M${F(-44, 24)}Q${F(0, 6)} ${F(44, 24)}Q${F(38, 62)} ${F(0, 74)}Q${F(-38, 62)} ${F(-44, 24)}Z"/>
+      ${linea(`M${F(0, 70)}V${cy + 78 + dy}`)}
+      ${ojo(cx - 78, cy - 20, 28, 34)}${ojo(cx + 78, cy - 20, 28, 34)}
+      ${cachete(cx - 155, cy + 52, 36, 25)}${cachete(cx + 155, cy + 52, 36, 25)}
+    `);
+  }
+
+  /* ---------- Hipopótamo ---------- */
+  // De frente y metido en el agua hasta la panza: cabeza de maní (cráneo con dos chichones de ojos saltones
+  // arriba y un hocico enorme y más ancho abajo) con fosas grandes, orejitas chiquitas, sonrisa con dos
+  // dientitos y cachetes; adelante, el agua con olas (una sola zona cerrada) y unas ondas sueltas.
+  // Elipse girada `rot` grados, como path (sin transform).
+  const elipseRot = (cx, cy, rx, ry, rot, attrs = '') => {
+    const c = Math.cos(rot * RAD), s = Math.sin(rot * RAD);
+    const a = [R(cx + rx * c), R(cy + rx * s)], b = [R(cx - rx * c), R(cy - rx * s)];
+    return `<path d="M${a}A${rx} ${ry} ${rot} 1 1 ${b}A${rx} ${ry} ${rot} 1 1 ${a}Z"${attrs}/>`;
+  };
+  {
+    const cr = [500, 330, 205, 175]; // cráneo
+    const [bx, by, br] = [418, 200, 60]; // chichón del ojo izquierdo (el derecho es simétrico)
+    // Puntos donde el chichón izquierdo cruza el borde del cráneo (el de más a la izquierda primero).
+    const f = (a) => ((bx + br * Math.cos(a * RAD) - cr[0]) / cr[2]) ** 2 + ((by + br * Math.sin(a * RAD) - cr[1]) / cr[3]) ** 2 - 1;
+    const cruces = [];
+    for (let a = 0; a < 360; a++) {
+      if (Math.sign(f(a)) === Math.sign(f(a + 1))) continue;
+      let [lo, hi] = [a, a + 1];
+      for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; if (Math.sign(f(m)) === Math.sign(f(lo))) lo = m; else hi = m; }
+      cruces.push([R(bx + br * Math.cos(lo * RAD)), R(by + br * Math.sin(lo * RAD))]);
+    }
+    const [p1, p2] = cruces.sort((p, q) => p[0] - q[0]), p3 = [1000 - p2[0], p2[1]], p4 = [1000 - p1[0], p1[1]];
+    const pc = (a) => pe(cr[0], cr[1], cr[2], cr[3], a);
+    const e = (p) => `A${cr[2]} ${cr[3]} 0 0 1 ${p}`, c = (p) => `A${br} ${br} 0 0 1 ${p}`;
+    const craneo = `M${pc(150)}${e(p1)}${c(p2)}${e(p3)}${c(p4)}${e(pc(30))}${e(pc(150))}Z`;
+    const oreja = (a) => { const [x, y] = pe(cr[0], cr[1], cr[2] + 14, cr[3] + 14, a); return `<circle cx="${x}" cy="${y}" r="44"/>`; };
+    // Sonrisa: curva cuadrática simétrica de (x0, y0) a (1000 - x0, y0) que baja `h` en el medio.
+    const [x0, y0, h] = [366, 516, 76];
+    const ys = (x) => { const t = (x - x0) / (1000 - 2 * x0); return y0 + 2 * h * t * (1 - t); };
+    // Dientito que cuelga de la sonrisa entre xa y xb (el borde de arriba sigue la curva).
+    const diente = (xa, xb) => {
+      const yb = R(Math.max(ys(xa), ys(xb)) + 50);
+      return `<path d="M${xa} ${R(ys(xa))}V${yb - 14}Q${xa} ${yb} ${xa + 14} ${yb}H${xb - 14}` +
+        `Q${xb} ${yb} ${xb} ${yb - 14}V${R(ys(xb))}Z" stroke-width="12"/>`;
+    };
+    const olas = 'q61-44 122 0'.repeat(7);
+    add('hipopotamo', 'Hipopótamo', `
+      <ellipse cx="500" cy="700" rx="330" ry="215"/>
+      ${oreja(216)}${oreja(324)}
+      <path d="${craneo}"/>
+      <ellipse cx="500" cy="500" rx="258" ry="154"/>
+      ${elipseRot(436, 428, 18, 26, 20, ' fill="#000"')}${elipseRot(564, 428, 18, 26, -20, ' fill="#000"')}
+      ${linea(`M${x0} ${y0}Q500 ${y0 + 2 * h} ${1000 - x0} ${y0}`)}
+      ${diente(422, 476)}${diente(524, 578)}
+      ${ojo(bx, 228)}${ojo(1000 - bx, 228)}
+      ${cachete(304, 488, 38, 26)}${cachete(696, 488, 38, 26)}
+      <path d="M73 760${olas}C927 870 760 936 500 936C240 936 73 870 73 760Z"/>
+      ${linea('M150 820q34-22 68 0M782 820q34-22 68 0M318 890q34-22 68 0M614 890q34-22 68 0')}
+    `);
+  }
+
+  /* ---------- Rinoceronte ---------- */
+  // De perfil mirando a la derecha: cuerpo de barril con dos pliegues del cuero (paleta y cadera) que lo
+  // dividen en tres placas, patas gruesas de a pares con la franja del pie, colita con pompón, cabeza grande
+  // con un cuerno grande en la punta del hocico y uno chico atrás, orejitas ovaladas y carita simpática.
+  // Las orejas y los cuernos van antes que la cabeza: la cabeza tapa sus bases. Todo corrido 16 u a la izquierda.
+  {
+    const cu = [415, 628, 285, 180]; // cuerpo
+    const yb = (x, s) => R(cu[1] + s * cu[3] * Math.sqrt(1 - ((x - cu[0]) / cu[2]) ** 2)); // borde del cuerpo
+    // Pliegue que cruza el cuerpo de arriba (en xa) a abajo (en xb), combado hacia xm en el medio.
+    const pliegue = (xa, xm, xb) => `M${xa} ${yb(xa, -1)}Q${xm} ${cu[1]} ${xb} ${yb(xb, 1)}`;
+    const pata = (x) => `<path d="M${x} 700V912Q${x} 936 ${x + 24} 936H${x + 100}Q${x + 124} 936 ${x + 124} 912V700Z"/>` +
+      linea(`M${x - 2} 880Q${x + 62} 894 ${x + 126} 880`);
+    const par = (x) => pata(x + 76) + pata(x);
+    // Cuerno: de la base de atrás b1 sube hasta la punta T con el borde de atrás apenas cóncavo (control ca)
+    // y baja hasta la base de adelante b2 con el borde de adelante inflado (control cb).
+    const cuerno = (b1, ca, T, cb, b2) => `<path d="M${b1}Q${ca} ${T}Q${cb} ${b2}Z"/>`;
+    add('rinoceronte', 'Rinoceronte', `<g transform="translate(-16 0)">
+      <path d="M136 606C112 630 104 664 106 700" fill="none"/>
+      <path d="M106 680C78 698 70 742 88 768C104 786 130 776 134 750C140 720 130 694 106 680Z"/>
+      ${par(166)}${par(466)}
+      <ellipse cx="${cu[0]}" cy="${cu[1]}" rx="${cu[2]}" ry="${cu[3]}"/>
+      ${linea(pliegue(236, 290, 244) + pliegue(480, 424, 486))}
+      ${elipseRot(590, 300, 32, 56, -24)}${elipseRot(646, 286, 32, 56, 6)}
+      ${cuerno([742, 344], [768, 294], [760, 240], [830, 298], [828, 382])}
+      ${cuerno([840, 398], [874, 300], [852, 204], [944, 300], [936, 426])}
+      <path d="M566 350C600 300 684 296 746 322C800 344 840 372 882 386C940 404 966 450 964 504C962 564 928 602 866 608C784 618 680 612 624 588C566 564 542 516 544 456C546 410 550 376 566 350Z"/>
+      ${ojo(706, 424)}
+      <ellipse cx="932" cy="468" rx="8" ry="11" fill="#000"/>
+      ${linea('M954 552Q926 584 874 578')}
+      ${cachete(776, 516, 38, 26)}
+    </g>`);
+  }
+
+  /* ---------- Tucán ---------- */
+  // Parado en una rama con hojas grandes, mirando a la izquierda: cuerpo ovalado con pechera clara, ala,
+  // patitas agarradas a la rama, cola larga que cuelga detrás, ojo con antifaz y un pico GIGANTE dividido
+  // en franjas. La panza tapa el borde de arriba de la rama y la rama tapa el nacimiento de la cola.
+  {
+    const cu = [630, 510, 170, 265]; // cuerpo (cabeza incluida)
+    const pc = (a) => pe(cu[0], cu[1], cu[2], cu[3], a);
+    // Pico: borde de arriba (de la base a la punta) y de abajo (de la punta a la base).
+    const arriba = [[530, 278], [420, 232], [200, 260], [72, 450]];
+    const abajo = [[72, 450], [190, 440], [380, 462], [520, 458]];
+    // Franja: línea que cruza el pico en t (0 = base, 1 = punta) de un borde al otro.
+    const franja = (t) => {
+      const a = bz(arriba, t), b = bz(abajo, 1 - t);
+      return `M${R(a[0])} ${R(a[1])}L${R(b[0])} ${R(b[1])}`;
+    };
+    // Hoja grande con nervio (el nervio sale de la base y termina antes de la punta).
+    const hoja = (bx, by, tx, ty, w) => {
+      const L = Math.hypot(tx - bx, ty - by), u = [(tx - bx) / L, (ty - by) / L], n = [-u[1], u[0]];
+      const P = (al, s) => `${R(bx + u[0] * L * al + n[0] * s)} ${R(by + u[1] * L * al + n[1] * s)}`;
+      return `<path d="M${bx} ${by}C${P(0.25, w)} ${P(0.75, w * 0.8)} ${tx} ${ty}C${P(0.75, -w * 0.8)} ${P(0.25, -w)} ${bx} ${by}Z"/>` +
+        linea(`M${bx} ${by}Q${P(0.45, w * 0.1)} ${P(0.78, 0)}`);
+    };
+    // Patita agarrada a la rama: tres deditos redondos que caen por delante.
+    const pata = (x, y) => `<path d="M${x - 54} ${y + 8}C${x - 54} ${y - 30} ${x + 54} ${y - 30} ${x + 54} ${y + 8}` +
+      `A18 18 0 0 1 ${x + 18} ${y + 8}A18 18 0 0 1 ${x - 18} ${y + 8}A18 18 0 0 1 ${x - 54} ${y + 8}Z" stroke-width="12"/>`;
+    add('tucan', 'Tucán', `
+      <path d="M596 700L672 916Q682 944 710 944H756Q788 944 776 914L680 700Z"/>
+      ${hoja(170, 800, 66, 620, 80)}${hoja(262, 836, 150, 958, 76)}${hoja(858, 784, 950, 594, 80)}
+      <path d="M60 780Q500 730 940 760A45 45 0 0 1 940 850Q500 822 60 870A45 45 0 0 1 60 780Z"/>
+      <ellipse cx="${cu[0]}" cy="${cu[1]}" rx="${cu[2]}" ry="${cu[3]}"/>
+      <path d="M${pc(200)}A${cu[2]} ${cu[3]} 0 0 0 ${pc(146)}C620 610 596 490 ${pc(200)}Z"/>
+      <path d="M708 494C786 510 806 608 782 700C766 740 728 738 714 706C672 628 666 548 708 494Z"/>
+      ${pata(590, 776)}${pata(706, 772)}
+      <path d="M${arriba[0]}${C(arriba)}${C(abajo)}Q584 370 530 278Z"/>
+      ${linea(franja(0.22) + franja(0.46) + franja(0.7))}
+      <ellipse cx="634" cy="336" rx="76" ry="70"/>
+      ${ojo(634, 336, 26, 31)}
+      ${cachete(724, 430, 36, 24)}
+    `);
+  }
+
+  /* ---------- Serpiente ---------- */
+  // Enrollada en tres vueltas apiladas (la de abajo más ancha), con bandas que cruzan cada vuelta, la
+  // colita que asoma abajo a la izquierda, el cuello que sube y una cabeza grande de frente con ojos
+  // grandes, cachetes, sonrisa y la lengüita bífida afuera.
+  {
+    // Vuelta: elipse ancha [cx, cy, rx, ry] con bandas en las abscisas xs (de borde a borde, apenas curvas).
+    const vuelta = (E, xs) => {
+      const [cx, cy, rx, ry] = E;
+      const y = (x, s) => R(cy + s * ry * Math.sqrt(1 - ((x - cx) / rx) ** 2));
+      const bandas = xs.map((x) => { const k = R((x - cx) / rx * 16); return `M${x} ${y(x, -1)}Q${x + k} ${cy} ${x} ${y(x, 1)}`; }).join('');
+      return `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>` + linea(bandas);
+    };
+    const cuello = [[560, 640], [620, 560], [540, 470], [500, 420]];
+    add('serpiente', 'Serpiente', `
+      <path d="M170 880C120 880 80 860 70 820C62 790 84 770 104 778C120 784 118 806 104 808C130 830 150 834 180 836Z"/>
+      ${vuelta([500, 850, 360, 88], [240, 340, 440, 540, 640, 740])}
+      ${vuelta([500, 730, 290, 82], [300, 400, 500, 600, 700])}
+      ${tubo(`M${cuello[0]}${C(cuello)}`, 120)}
+      ${vuelta([500, 620, 220, 76], [370, 470, 570])}
+      <ellipse cx="500" cy="320" rx="175" ry="130"/>
+      ${ojo(438, 300, 30, 36)}${ojo(562, 300, 30, 36)}
+      ${cachete(390, 372, 36, 24)}${cachete(610, 372, 36, 24)}
+      <path d="M484 404H516V470L536 500Q538 512 526 510L500 486L474 510Q462 512 464 500L484 470Z" stroke-width="12"/>
+      ${linea('M440 392Q500 430 560 392')}
+    `);
+  }
+
 })(window.CL);

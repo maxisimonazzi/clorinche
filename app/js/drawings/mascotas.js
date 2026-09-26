@@ -182,4 +182,125 @@
   <path d="M460 504H540V546Q540 562 524 562H476Q460 562 460 546z"/>
   <path d="M500 504V562" fill="none" stroke-width="12"/>
 `);
+
+  /* ---------- Piezas compartidas de los dibujos nuevos (mismo estilo que los de arriba) ---------- */
+  const R = Math.round;
+  // Ojo tierno: pupila negra con un brillito grande y uno chiquito (como el perro, el gato y el hámster).
+  // El brillito grande no pasa de r = 11 para que quede bloqueado (blanco) y no sea una zona para pintar.
+  const ojo = (x, y, rx = 30, ry = 38) =>
+    `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#000"/>` +
+    `<circle cx="${x - R(rx / 3)}" cy="${y - R(ry * 0.37)}" r="${Math.min(11, R(rx * 0.37))}" fill="#fff" stroke="none"/>` +
+    `<circle cx="${x + R(rx * 0.3)}" cy="${y + R(ry * 0.42)}" r="5" fill="#fff" stroke="none"/>`;
+  // Cachete para pintar de rosado.
+  const cachete = (x, y, rx = 40, ry = 28) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" stroke-width="12"/>`;
+
+  /* ---------- Loro: pico curvo grande, ojo con aro, ala de plumas grandes y cola larga, parado en una rama ---------- */
+  add('loro', 'Loro', `
+  <g transform="rotate(18 460 590)"><path d="M418 590C414 745 420 852 436 894Q460 928 484 894C500 852 506 745 502 590z"/></g>
+  <g transform="rotate(-10 460 590)"><path d="M418 590C414 740 420 845 436 887Q460 921 484 887C500 845 506 740 502 590z"/></g>
+  <g transform="rotate(4 460 590)"><path d="M418 590C414 765 420 880 438 922Q460 956 482 922C500 880 506 765 502 590z"/></g>
+  <path d="M88 668C300 650 600 646 830 654C872 656 872 734 830 736C600 730 300 734 90 750C46 752 44 670 88 668z"/>
+  <g transform="rotate(-30 790 664)"><path d="M790 664C820 606 900 602 950 664C900 726 820 722 790 664z"/><path d="M830 664H910" fill="none" stroke-width="12"/></g>
+  <g transform="rotate(40 720 730)"><path d="M720 730C750 672 830 668 880 730C830 792 750 788 720 730z"/><path d="M760 730H840" fill="none" stroke-width="12"/></g>
+  <g transform="rotate(-140 190 668)"><path d="M190 668C220 610 300 606 350 668C300 730 220 726 190 668z"/><path d="M230 668H310" fill="none" stroke-width="12"/></g>
+  <path d="M590 640V745C590 790 632 790 632 758C632 790 674 790 674 745C674 715 664 690 660 640z"/>
+  <path d="M534 640C530 690 520 715 520 745C520 790 562 790 562 758C562 790 604 790 604 745V640z"/>
+  <path d="M420 420C470 385 600 380 650 430C700 480 725 560 712 615C702 660 670 676 620 680C560 684 440 686 405 676C380 668 372 640 374 600C372 530 385 460 420 420z"/>
+  <g transform="rotate(18 515 535)">
+  <path d="M428 465C428 422 468 405 515 405C562 405 602 422 602 465V585C602 622 590 640 574 640C557 640 547 627 544 608C542 633 530 650 515 650C500 650 488 633 486 608C483 627 473 640 456 640C440 640 428 622 428 585z"/>
+  <path d="M428 515Q457 555 486 530Q515 558 544 530Q573 555 602 515M486 530V608M544 530V608" fill="none"/>
+  </g>
+  <circle cx="530" cy="270" r="168"/>
+  <path d="M668 350C706 342 746 352 756 380C764 408 736 430 704 430C678 430 660 405 668 350z"/>
+  <path d="M650 195C720 165 812 205 824 295C832 355 808 402 772 408C774 383 766 360 744 350C720 340 692 344 668 356C648 318 640 240 650 195z"/>
+  <ellipse cx="555" cy="232" rx="74" ry="78"/>
+  ${ojo(563, 232)}
+  ${cachete(585, 370)}
+`);
+
+  /* ---------- Canario: pajarito redondo cantando con dos notas musicales, sobre una ramita con hojas ---------- */
+  add('canario', 'Canario', `
+  <g transform="rotate(28 260 590)"><path d="M260 556C170 546 90 560 80 590C90 620 170 634 260 624z"/></g>
+  <g transform="rotate(4 260 600)"><path d="M260 566C170 556 80 570 70 600C80 630 170 644 260 634z"/></g>
+  <g transform="rotate(-20 260 612)"><path d="M260 578C170 568 90 582 80 612C90 642 170 656 260 646z"/></g>
+  <g transform="rotate(55 700 800)"><path d="M700 800C730 745 800 742 845 800C800 858 730 855 700 800z"/><path d="M738 800H812" fill="none" stroke-width="12"/></g>
+  <path d="M118 790C330 772 600 762 820 750C858 748 862 808 822 810C600 820 330 830 120 850C82 854 80 792 118 790z"/>
+  <g transform="rotate(-40 805 755)"><path d="M805 755C835 700 905 697 950 755C905 813 835 810 805 755z"/><path d="M843 755H917" fill="none" stroke-width="12"/></g>
+  <g transform="rotate(-160 200 785)"><path d="M200 785C230 730 300 727 345 785C300 843 230 840 200 785z"/><path d="M238 785H312" fill="none" stroke-width="12"/></g>
+  <path d="M420 740V835C420 892 462 892 462 850C462 892 504 892 504 835C504 805 496 780 492 740z"/>
+  <path d="M350 740C346 780 336 805 336 835C336 892 378 892 378 850C378 892 420 892 420 835V740z"/>
+  <path d="M358 385C332 340 338 292 366 290C380 289 388 304 389 322C388 280 398 258 416 258C436 258 442 284 436 322C444 300 456 292 468 298C486 310 472 352 458 385z"/>
+  <circle cx="410" cy="575" r="235"/>
+  <path d="M637 636A235 235 0 0 1 311 788C360 700 500 640 637 636z"/>
+  <path d="M430 555C410 520 345 512 285 528C248 538 234 558 244 574C222 586 224 614 250 618C238 640 256 660 286 652C340 668 410 655 436 618C450 598 448 574 430 555z"/>
+  <path d="M616 458C668 446 716 452 742 470C748 476 745 482 738 484C712 490 688 500 668 515C688 528 710 542 728 556C734 562 732 570 724 572C690 578 650 578 620 570C600 540 600 490 616 458z"/>
+  ${ojo(505, 468, 32, 40)}
+  ${cachete(518, 565)}
+  <path d="M592 270V90L816 50V230H772V122L636 146V270z"/>
+  <ellipse cx="580" cy="270" rx="58" ry="44" transform="rotate(-20 580 270)"/>
+  <ellipse cx="760" cy="230" rx="58" ry="44" transform="rotate(-20 760 230)"/>
+  <path d="M862 470V285C862 262 880 256 898 266C940 290 962 335 948 400C938 378 922 356 906 348V470z"/>
+  <ellipse cx="850" cy="470" rx="58" ry="44" transform="rotate(-20 850 470)"/>
+`);
+
+  /* ---------- Ratón: orejas redondas grandes, bigotes, cola larga en curva y un pedazo de queso con agujeros ---------- */
+  add('raton', 'Ratón', `
+  <path d="M660 820C760 900 900 900 915 780C925 700 895 640 855 612C830 596 800 610 812 632C850 660 868 705 862 760C852 840 760 850 680 800z"/>
+  <circle cx="300" cy="195" r="125"/>
+  <circle cx="305" cy="202" r="76"/>
+  <circle cx="700" cy="195" r="125"/>
+  <circle cx="695" cy="202" r="76"/>
+  <path d="M400 510C300 570 282 690 290 800C296 870 340 900 410 900H590C660 900 704 870 710 800C718 690 700 570 600 510z"/>
+  <ellipse cx="400" cy="905" rx="85" ry="40"/>
+  <ellipse cx="600" cy="905" rx="85" ry="40"/>
+  <path d="M380 945V920M420 945V920M580 945V920M620 945V920" fill="none" stroke-width="12"/>
+  <ellipse cx="500" cy="375" rx="215" ry="170"/>
+  <path d="M262 420L170 395M282 458L180 465M312 494L215 528M738 420L830 395M718 458L820 465M688 494L785 528" fill="none" stroke-width="12"/>
+  ${ojo(420, 350)}
+  ${ojo(580, 350)}
+  ${cachete(372, 436)}
+  ${cachete(628, 436)}
+  <ellipse cx="500" cy="440" rx="36" ry="28"/>
+  <path d="M500 468V486M462 482Q481 508 500 486Q519 508 538 482" fill="none"/>
+  <path d="M360 660L760 580L640 660z"/>
+  <path d="M640 660L760 580V720L640 840z"/>
+  <path d="M360 660H640V840H380Q360 840 360 820z"/>
+  <circle cx="465" cy="737" r="34"/>
+  <circle cx="568" cy="728" r="32"/>
+  <circle cx="701" cy="700" r="32"/>
+  <ellipse cx="375" cy="805" rx="42" ry="36"/>
+  <ellipse cx="640" cy="808" rx="42" ry="36"/>
+  <path d="M360 770V790M390 770V790M625 773V793M655 773V793" fill="none" stroke-width="10"/>
+`);
+
+  /* ---------- Erizo: púas grandes redondeadas, carita puntiaguda con nariz redonda, patitas y una manzana ---------- */
+  add('erizo', 'Erizo', `
+  <ellipse cx="300" cy="828" rx="64" ry="40"/>
+  <ellipse cx="680" cy="828" rx="64" ry="40"/>
+  <path d="M692 812L829 828Q884 834 854 788L779 672z"/>
+  <path d="M721 753L856 721Q909 709 865 675L755 591z"/>
+  <path d="M728 688L844 612Q890 582 837 565L705 524z"/>
+  <path d="M713 624L795 513Q828 469 773 472L635 479z"/>
+  <path d="M676 570L716 437Q732 385 681 406L554 459z"/>
+  <path d="M623 531L616 393Q613 338 572 375L470 469z"/>
+  <path d="M561 513L506 385Q484 335 459 384L396 507z"/>
+  <path d="M495 517L400 416Q363 376 356 431L338 568z"/>
+  <path d="M435 543L312 481Q263 456 275 510L305 645z"/>
+  <path d="M327 810A240 240 0 1 1 753 810z"/>
+  <path d="M560 230C595 202 650 210 662 260C675 315 640 370 598 380C580 384 570 378 560 374C550 378 540 384 522 380C480 370 445 315 458 260C470 210 525 202 560 230z"/>
+  <path d="M560 230C558 205 562 180 575 162" fill="none"/>
+  <path d="M572 190C600 148 665 140 695 168C665 202 605 210 572 190z"/>
+  <path d="M490 272Q486 302 502 326" fill="none" stroke-width="12"/>
+  <circle cx="470" cy="490" r="52"/>
+  <path d="M170 675C225 610 290 495 400 490C495 486 555 560 555 650C555 750 480 810 390 810C310 810 250 775 200 738C168 715 158 690 170 675z"/>
+  <circle cx="150" cy="695" r="32"/>
+  ${ojo(345, 610)}
+  ${cachete(390, 705)}
+  <path d="M212 722Q240 746 270 726" fill="none"/>
+`);
+
+  /* ---------- Pecera: pecera redonda con agua, pececito, algas, piedritas y burbujas ---------- */
+  add('pecera', 'Pecera', `
+  <circle cx="500" cy="500" r="100"/>
+`);
 })(window.CL);

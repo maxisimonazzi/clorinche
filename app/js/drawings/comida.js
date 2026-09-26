@@ -254,4 +254,104 @@
     ${gotita(432, 678, -8, 1.35)}${gotita(568, 678, 8, 1.35)}
     ${cara(500, 477, { k: 1.1 })}
   `);
+
+  /* ======================= Dibujos nuevos ======================= */
+
+  // Chispita grande: palito redondeado cerrado (se pinta), centrado en (x, y) y girado `ang` grados.
+  const chispita = (x, y, ang) =>
+    `<rect x="-46" y="-22" width="92" height="44" rx="22" stroke-width="12" transform="translate(${x} ${y}) rotate(${ang})"/>`;
+
+  // Onda suave (sin puntas) de x1 a x0 (hacia la izquierda) sobre la altura y: n medias ondas de alto amp.
+  function ola(x1, x0, y, amp, n) {
+    const w = (x1 - x0) / n, k = amp * 4 / 3;
+    let d = '';
+    for (let i = 0; i < n; i++) {
+      const a = x1 - i * w, b = a - w, s = i % 2 ? -1 : 1;
+      d += `C${R(a - w * 0.4)} ${R(y + s * k)} ${R(b + w * 0.4)} ${R(y + s * k)} ${R(b)} ${y}`;
+    }
+    return d;
+  }
+
+  /* ---------- Hamburguesa: pan con semillas, lechuga, tomate, queso que chorrea, carne y pan ---------- */
+  const semilla = (x, y, ang) =>
+    `<ellipse cx="${x}" cy="${y}" rx="25" ry="40" stroke-width="12" transform="rotate(${ang} ${x} ${y})"/>`;
+
+  add('hamburguesa', 'Hamburguesa', `
+    <path d="M160 775H840Q865 775 865 800V825C865 885 815 918 750 918H250C185 918 135 885 135 825V800Q135 775 160 775Z"/>
+    <rect x="105" y="640" width="790" height="160" rx="80"/>
+    <path d="M190 592H810L848 722L732 662L615 730L500 662L385 730L268 662L152 722Z"/>
+    <rect x="150" y="485" width="700" height="124" rx="62"/>
+    <path d="M160 420H840C890 414 918 440 912 474C908 500 890 514 870 522${ola(870, 130, 522, 18, 8)}C112 534 86 524 84 494C82 454 112 420 160 420Z"/>
+    <path d="M130 400C126 228 300 110 500 110C700 110 874 228 870 400Q872 440 832 440H168Q128 440 130 400Z"/>
+    ${semilla(500, 180, 0)}${semilla(362, 212, -35)}${semilla(638, 212, 35)}
+    ${semilla(250, 296, -62)}${semilla(750, 296, 62)}
+    ${cara(500, 305, { k: 1.05 })}
+  `);
+
+  /* ---------- Banana: medio pelada, con la cáscara abierta en tres tiras ---------- */
+  add('banana', 'Banana', `
+    <rect x="443" y="856" width="74" height="84" rx="18"/>
+    <path d="M290 520C284 360 335 180 452 104C500 72 585 76 622 112C680 168 716 330 710 520Z"/>
+    <path d="M282 470C276 645 342 818 446 874Q480 892 516 882C622 834 724 662 718 470Z"/>
+    <path d="M410 485C360 443 285 432 240 462C185 498 158 600 138 742C185 690 265 600 338 556C367 538 390 508 410 485Z"/>
+    <path d="M590 485C640 443 715 432 760 462C815 498 842 600 862 742C815 690 735 600 662 556C633 538 610 508 590 485Z"/>
+    <path d="M372 482Q500 452 628 482C634 586 588 696 492 802C424 702 368 592 372 482Z"/>
+    ${cara(502, 345, { k: 0.92, sep: 64 })}
+  `);
+
+  /* ---------- Cupcake: pirotín con pliegues, crema en tres pisos, cereza y chispitas ---------- */
+  add('cupcake', 'Cupcake', `
+    <path d="M215 620L288 892Q296 918 324 918H676Q704 918 712 892L785 620Z"/>
+    <path d="M310 620L360 918M405 620L430 918M500 620V918M595 620L570 918M690 620L640 918" fill="none" stroke-width="12"/>
+    <path d="M215 620L288 892Q296 918 324 918H676Q704 918 712 892L785 620" fill="none"/>
+    <path d="M250 400H750C835 400 872 460 866 530C862 590 830 640 790 650${gotas(790, 650, 580, [24, 30, 24, 24, 30, 24])}C170 640 138 590 134 530C128 460 165 400 250 400Z"/>
+    <rect x="245" y="290" width="510" height="150" rx="75"/>
+    <rect x="320" y="200" width="360" height="120" rx="60"/>
+    <path d="M506 116q10-40 50-66" fill="none" stroke-width="14"/>
+    <circle cx="500" cy="170" r="58"/>
+    <path d="M473 150q12-17 30-18" fill="none" stroke-width="10"/>
+    ${chispita(330, 368, 30)}${chispita(670, 368, -30)}${chispita(400, 258, -10)}${chispita(600, 258, 10)}
+    ${chispita(215, 515, 70)}${chispita(785, 515, -70)}
+    ${cara(500, 525, { k: 1.1, ojos: 'felices' })}
+  `);
+
+  /* ---------- Dona: rosca con glaseado chorreado, agujero, chispitas ---------- */
+  // Borde de gotas a lo largo de una curva y = f(x): de x1 a x0 (hacia la izquierda), una "U" por profundidad.
+  function ondas(x1, x0, f, prof) {
+    const w = (x1 - x0) / prof.length;
+    let d = '';
+    prof.forEach((g, i) => {
+      const a = x1 - i * w, b = a - w, k = g * 4 / 3;
+      d += `C${R(a)} ${R(f(a) + k)} ${R(b)} ${R(f(b) + k)} ${R(b)} ${R(f(b))}`;
+    });
+    return d;
+  }
+  // El glaseado es una elipse (centro 500, 495; radios 370 × 255) y chorrea en la mitad de abajo.
+  const yGlaseado = (x) => 495 + 255 * Math.sqrt(Math.max(0, 1 - ((x - 500) / 370) ** 2));
+  add('dona', 'Dona', `
+    <path d="M70 520C70 300 285 180 500 180C715 180 930 300 930 520C930 740 730 880 500 880C270 880 70 740 70 520Z"/>
+    <path d="M150 ${R(yGlaseado(150))}A370 255 0 1 1 850 ${R(yGlaseado(850))}${ondas(850, 150, yGlaseado, [30, 48, 38, 54, 44, 54, 38, 48, 30])}Z"/>
+    <ellipse cx="500" cy="400" rx="140" ry="78"/>
+    <path d="M365 420A140 78 0 1 1 635 420A135 45 0 0 0 365 420Z"/>
+    ${chispita(310, 340, -28)}${chispita(690, 340, 28)}${chispita(208, 455, 78)}${chispita(792, 455, -78)}
+    ${chispita(228, 585, -50)}${chispita(772, 585, 50)}
+    ${cara(500, 585, { k: 1.1, ojos: 'guino' })}
+  `);
+
+  /* ---------- Uvas: racimo con cabito, hoja con nervaduras y carita en la uva del frente ---------- */
+  // Uva: bolita con un brillito (arco suelto arriba a la izquierda, no corta la zona).
+  const uva = (x, y, r = 112) => `<circle cx="${x}" cy="${y}" r="${r}"/>` +
+    `<path d="M${x - R(r * 0.56)} ${y - R(r * 0.14)}Q${x - R(r * 0.5)} ${y - R(r * 0.5)} ${x - R(r * 0.14)} ${y - R(r * 0.56)}" fill="none" stroke-width="10"/>`;
+  add('uvas', 'Uvas', `
+    <g transform="translate(0 13) rotate(-12 522 132)">
+      <path d="M522 132C540 96 586 64 634 58C660 55 676 72 668 90C720 62 810 70 868 122C812 176 724 184 668 160C676 180 660 196 634 194C586 190 540 168 522 132Z"/>
+      <path d="M574 131Q705 124 842 122M612 130Q628 104 640 86M612 132Q628 158 640 176M722 127Q742 108 758 98M722 127Q742 144 758 152" fill="none" stroke-width="12"/>
+    </g>
+    <path d="M476 250C478 200 486 150 494 100L540 108C532 156 526 204 526 250Z"/>
+    ${uva(248, 338)}${uva(416, 338)}${uva(584, 338)}${uva(752, 338)}
+    ${uva(332, 474)}${uva(500, 474)}${uva(668, 474)}
+    ${uva(412, 604)}${uva(588, 604)}
+    <circle cx="500" cy="748" r="190"/>
+    ${cara(500, 712, { k: 0.9, sep: 60 })}
+  `);
 })(window.CL);

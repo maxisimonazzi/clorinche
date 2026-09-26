@@ -19,6 +19,7 @@
     { id: 'naturaleza', name: 'Naturaleza', color: '#b8e986', cover: 'flor' },
     { id: 'comida', name: 'Comida', color: '#ffb3d9', cover: 'helado' },
     { id: 'fantasia', name: 'Fantasía', color: '#c9a6ff', cover: 'unicornio' },
+    { id: 'paisajes', name: 'Paisajes', color: '#8ed8c8', cover: 'playa' },
     { id: 'mis', name: 'Mis dibujos', color: '#ffd9a0', cover: null },
   ];
 

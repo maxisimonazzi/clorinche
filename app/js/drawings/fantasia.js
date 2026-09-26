@@ -97,6 +97,22 @@
     return `<path d="${d}Z"/>`;
   }
 
+  // Loma de pasto debajo de los personajes, con matitas en xa y xb.
+  const mata = (x) => {
+    const y = R(895 - 45 * Math.sqrt(1 - ((x - 500) / 420) ** 2));
+    return `M${x} ${y}l-22-42M${x} ${y}v-52M${x} ${y}l22-42`;
+  };
+  const pasto = (xa = 110, xb = 890) =>
+    `<ellipse cx="500" cy="895" rx="420" ry="45"/>` +
+    linea(`${xa ? mata(xa) : ''}${xb ? mata(xb) : ''}`);
+
+  // Pata con casco: x = borde izquierdo, w = ancho, de y0 hasta el piso (895).
+  function pata(x, w = 72, y0 = 700, casco = 55) {
+    const y1 = 895, r = 22, h = w - 2 * r;
+    return `<path d="M${x} ${y0}V${y1 - r}q0 ${r} ${r} ${r}h${h}q${r} 0 ${r}-${r}V${y0}z"/>` +
+      `<path d="M${x} ${y1 - casco}q${w / 2} 10 ${w} 0V${y1 - r}q0 ${r}-${r} ${r}h-${h}q-${r} 0-${r}-${r}z"/>`;
+  }
+
   /* ---------- Unicornio: cuerno en espiral, crin y cola en mechones, carita dulce, estrellitas ---------- */
   // Cuerno curvado hacia adelante con la punta redondeada. Borde de atrás a→p1, arco de la punta p1→p2,
   // borde de adelante p2→b, y la base apenas combada. Las franjas en espiral son curvas en S que van de
@@ -445,5 +461,190 @@
     ${ojo(345, 472, 18, 22)}${ojo(655, 472, 18, 22)}
     ${cachete(298, 578, 34, 22)}${cachete(702, 578, 34, 22)}
     ${boca()}
+  `);
+
+  /* ---------- Hada: alas de mariposa, varita con estrella, vestido de pétalos y pelo recogido en un rodete ---------- */
+  // Alas izquierdas (la derecha es el espejo): la de abajo, más chica, y la de arriba, grande y redonda,
+  // cada una con una gota adentro para pintar de otro color. La de arriba nace detrás de la cabeza: así los
+  // brazos quedan enteros adelante del ala (sin cuñas finas donde el borde del ala corre junto al brazo).
+  const alasHada =
+    `<path d="M490 600C420 610 280 620 215 690C160 750 200 840 280 830C370 818 450 730 495 640Z"/>` +
+    `<path d="M232 716C262 690 318 690 330 716 342 744 312 780 272 784 232 788 212 740 232 716Z"/>` +
+    `<path d="M480 440C430 330 280 250 150 270C60 285 40 400 100 460C170 530 330 580 490 600Z"/>` +
+    `<path d="M140 340C190 320 280 360 320 430 250 450 170 440 135 410 110 385 115 350 140 340Z"/>`;
+  // Pollera de pétalos: dos de costado, abiertos, y el del medio adelante de todo (bajan en punta).
+  const polleraHada =
+    `<path d="M462 545C400 570 320 640 300 740C380 760 460 720 500 630Z"/>` +
+    `<path d="M538 545C600 570 680 640 700 740C620 760 540 720 500 630Z"/>` +
+    `<path d="M448 545C410 620 430 720 500 790C570 720 590 620 552 545Z"/>`;
+
+  // Florcita de 5 pétalos redondos (un solo contorno) con el centro aparte.
+  const flor = (x, y, r, c) =>
+    nube(x, y, r, r, 5, -Math.PI / 2, 0.52) + `<circle cx="${x}" cy="${y}" r="${c}" stroke-width="12"/>`;
+
+  add('hada', 'Hada', `
+    ${estrella(118, 196, 56, -10, 14)}
+    ${estrella(262, 100, 52, 14, 14)}
+    ${estrella(900, 98, 50, 10, 14)}
+    ${alasHada}<g transform="translate(1000 0) scale(-1 1)">${alasHada}</g>
+    <rect x="432" y="700" width="50" height="130" rx="25"/>
+    <rect x="518" y="700" width="50" height="130" rx="25"/>
+    <ellipse cx="438" cy="838" rx="50" ry="28"/>
+    <ellipse cx="562" cy="838" rx="50" ry="28"/>
+    ${polleraHada}
+    ${mechon([[466, 505], [410, 505], [360, 480], [336, 440]], 56, 50)}
+    ${manopla(318, 404, -30)}
+    ${mechon([[534, 505], [600, 505], [652, 474], [676, 428]], 56, 50)}
+    ${linea('M688 410L752 188', 18)}
+    <circle cx="688" cy="410" r="32"/>
+    ${estrella(752, 184, 82, 0, 16)}
+    <path d="M440 420C428 470 440 520 452 548H548C560 520 572 470 560 420Z"/>
+    <circle cx="500" cy="118" r="64"/>
+    <circle cx="500" cy="290" r="150"/>
+    <path d="M342 310C326 190 400 122 500 122 600 122 674 190 658 310Q634 296 626 236Q596 268 563 222Q532 262 500 218Q468 262 437 222Q404 268 374 236Q366 296 342 310Z"/>
+    ${flor(404, 150, 50, 21)}
+    ${ojo(450, 322, 24, 30)}${ojo(550, 322, 24, 30)}
+    ${linea('M430 302l-18-14M426 316l-22-4M570 302l18-14M574 316l22-4', 10)}
+    ${cachete(420, 386, 30, 20)}${cachete(580, 386, 30, 20)}
+    ${linea('M478 388q22 18 44 0')}
+  `);
+
+  /* ---------- Princesa: corona con puntas y joyitas, pelo largo con bucles, vestido acampanado con volados ---------- */
+  // Volado de la pollera: de ancho wt (arriba, y = yt, queda tapado) a wb (abajo, y = yb) con n ondas;
+  // los costados abultan hacia afuera (`panza`) para que la pollera quede acampanada.
+  function volado(yt, wt, yb, wb, n, onda = 28, panza = 40) {
+    const xl = 500 - wb / 2, xr = 500 + wb / 2, w = wb / n, h = yb - yt;
+    let d = `M${500 - wt / 2} ${yt}C${R(500 - wt / 2 - panza)} ${R(yt + h * 0.25)} ${R(xl - panza * 0.4)} ${R(yb - h * 0.45)} ${xl} ${yb}`;
+    for (let i = 1; i <= n; i++) d += `A${R(w / 2)} ${onda} 0 0 0 ${R(xl + w * i)} ${yb}`;
+    d += `C${R(xr + panza * 0.4)} ${R(yb - h * 0.45)} ${R(500 + wt / 2 + panza)} ${R(yt + h * 0.25)} ${500 + wt / 2} ${yt}Z`;
+    return `<path d="${d}"/>`;
+  }
+  // Mechón largo que termina en un bucle hacia afuera (a la izquierda), como el pelo de la sirena.
+  function bucle(pts, w0, w1, k = 1) {
+    const [x, y] = pts[pts.length - 1];
+    const giro = [[6, 24], [-14, 44], [-36, 34], [-54, 26], [-48, 0], [-30, 4]].map(([a, b]) => [x + a * k, y + b * k]);
+    return mechon([...pts, ...giro], w0, w1, 5);
+  }
+  // Pelo de atrás (lado izquierdo; el derecho es el espejo): dos mechones que salen de abajo de la melena.
+  const peloPrincesa =
+    bucle([[380, 320], [310, 350], [290, 440], [302, 510], [314, 580], [270, 600], [282, 650]], 120, 44) +
+    bucle([[410, 380], [360, 420], [346, 480], [350, 530]], 90, 44, 0.9);
+  // Corona de tres puntas con una bolita en cada punta y una joya redonda en el medio de la vincha.
+  const corona =
+    `<path d="M396 210L404 122L460 178L500 96L540 178L596 122L604 210Z"/>` +
+    `<path d="M388 192Q500 210 612 192L614 240Q500 258 386 240Z"/>` +
+    `<circle cx="404" cy="106" r="24" stroke-width="14"/><circle cx="500" cy="78" r="26" stroke-width="14"/>` +
+    `<circle cx="596" cy="106" r="24" stroke-width="14"/><circle cx="500" cy="224" r="22" stroke-width="12"/>`;
+
+  add('princesa', 'Princesa', `
+    ${corazon(136, 200, 0.9)}${corazon(864, 200, 0.9)}
+    ${peloPrincesa}<g transform="translate(1000 0) scale(-1 1)">${peloPrincesa}</g>
+    ${volado(760, 400, 905, 660, 6)}
+    ${volado(640, 300, 790, 520, 5)}
+    ${volado(550, 130, 675, 360, 4)}
+    <path d="M428 440C432 500 444 540 452 560L500 588L548 560C556 540 568 500 572 440Z"/>
+    ${mechon([[424, 494], [408, 534], [398, 570], [396, 604]], 52, 48)}
+    ${mechon([[576, 494], [592, 534], [602, 570], [604, 604]], 52, 48)}
+    <circle cx="396" cy="618" r="30"/><circle cx="604" cy="618" r="30"/>
+    <ellipse cx="416" cy="484" rx="48" ry="40"/><ellipse cx="584" cy="484" rx="48" ry="40"/>
+    <circle cx="500" cy="322" r="144"/>
+    <path d="M342 404C316 262 396 172 500 172 604 172 684 262 658 404Q646 330 610 296Q560 258 500 294Q440 258 390 296Q354 330 342 404Z"/>
+    ${corona}
+    ${ojo(450, 352, 25, 31)}${ojo(550, 352, 25, 31)}
+    ${linea('M429 331l-18-14M425 345l-22-4M571 331l18-14M575 345l22-4', 10)}
+    ${cachete(416, 414, 32, 21)}${cachete(584, 414, 32, 21)}
+    ${linea('M472 412q28 24 56 0')}
+  `);
+
+  /* ---------- Caballero: casco redondo con la visera levantada y pluma, escudo con estrella, espada de madera ---------- */
+  // Espada de madera de punta redonda (con vetas), guarda y pomo, dibujada parada e inclinada `ang` grados
+  // alrededor del puño (x, y); el puño va encima, tapando el mango.
+  const espada = (x, y, ang, L) => `<g transform="rotate(${ang} ${x} ${y})">` +
+    `<path d="M${x - 30} ${y - 60}V${y - L + 30}Q${x - 30} ${y - L} ${x} ${y - L}Q${x + 30} ${y - L} ${x + 30} ${y - L + 30}V${y - 60}Z"/>` +
+    linea(`M${x - 8} ${y - L + 50}L${x - 12} ${y - L + 130}M${x + 12} ${y - L + 110}L${x + 10} ${y - L + 180}`, 10) +
+    `<rect x="${x - 68}" y="${y - 74}" width="136" height="46" rx="23"/><circle cx="${x}" cy="${y + 66}" r="26"/></g>` +
+    `<circle cx="${x}" cy="${y}" r="42"/>`;
+
+  add('caballero', 'Caballero', `
+    ${nube(172, 150, 82, 44, 7, 0.3)}
+    ${pasto(120, 880)}
+    <path d="M424 700H576V850H424Z"/>
+    ${linea('M500 752V846')}
+    <path d="M404 896V868Q404 836 436 836H500V896Z"/>
+    <path d="M596 896V868Q596 836 564 836H500V896Z"/>
+    ${volado(690, 250, 770, 300, 4, 22, 20)}
+    <path d="M500 470C410 470 370 550 370 630 370 690 420 716 500 716 580 716 630 690 630 630 630 550 590 470 500 470Z"/>
+    <rect x="368" y="664" width="264" height="52" rx="22"/>
+    ${mechon([[600, 548], [660, 548], [720, 546], [766, 542]], 66, 62)}
+    ${espada(772, 544, 15, 310)}
+    <circle cx="376" cy="528" r="54"/><circle cx="624" cy="528" r="54"/>
+    <path d="M160 540H392V660C392 750 330 800 276 826 222 800 160 750 160 660Z"/>
+    ${estrella(276, 662, 78, 0, 16)}
+    <path d="M470 196C440 130 470 60 560 52C640 46 690 90 680 150C650 110 600 110 580 130C560 150 540 176 530 196Z"/>
+    ${linea('M500 190C500 130 540 90 600 82')}
+    <path d="M330 470C314 400 316 300 344 250C372 200 430 194 500 194C570 194 628 200 656 250C684 300 686 400 670 470Q500 500 330 470Z"/>
+    ${linea('M500 200V262')}
+    <rect x="460" y="164" width="80" height="48" rx="16"/>
+    <path d="M392 330V400C392 470 440 512 500 512C560 512 608 470 608 400V330Z"/>
+    <path d="M364 336C360 290 380 262 420 256H580C620 262 640 290 636 336Q500 316 364 336Z"/>
+    ${linea('M420 292H472M528 292H580')}
+    ${ojo(452, 398, 24, 30)}${ojo(548, 398, 24, 30)}
+    ${cachete(420, 454, 30, 20)}${cachete(580, 454, 30, 20)}
+    ${linea('M474 454q26 22 52 0')}
+  `);
+
+  /* ---------- Fantasmita: sábana con borde ondulado, cachetes y boca abierta, saludando; luna dormida y estrellas ---------- */
+  // Borde ondulado de abajo: n ondas de derecha (x0) a izquierda (x1) a la altura y, abultadas hacia abajo h.
+  function ondas(x0, x1, y, n, h) {
+    let d = '';
+    const w = (x0 - x1) / n;
+    for (let i = 1; i <= n; i++) d += `A${R(w / 2)} ${h} 0 0 1 ${R(x0 - w * i)} ${y}`;
+    return d;
+  }
+  // Luna creciente: el círculo (cx, cy, r) "mordido" por otro de radio r2 corrido (ox, oy).
+  function luna(cx, cy, r, ox, oy, r2) {
+    const d = Math.hypot(ox, oy), a = (r * r - r2 * r2 + d * d) / (2 * d), h = Math.sqrt(r * r - a * a);
+    const ux = ox / d, uy = oy / d, px = cx + a * ux, py = cy + a * uy;
+    return `<path d="M${P([px + h * uy, py - h * ux])}A${r} ${r} 0 1 0 ${P([px - h * uy, py + h * ux])}` +
+      `A${r2} ${r2} 0 1 1 ${P([px + h * uy, py - h * ux])}Z"/>`;
+  }
+
+  add('fantasmita', 'Fantasmita', `
+    ${estrella(130, 170, 56, -12, 14)}${estrella(96, 520, 46, 10, 14)}${estrella(150, 830, 44, -6, 14)}
+    ${estrella(880, 470, 50, 14, 14)}${estrella(872, 836, 46, 8, 14)}
+    ${luna(846, 156, 108, 46, -36, 92)}
+    ${linea('M782 178q14 12 28 0M790 226q14 10 28-2')}
+    <ellipse cx="492" cy="912" rx="200" ry="32"/>
+    ${mechon([[300, 470], [236, 456], [194, 414], [180, 356]], 92, 78)}
+    ${mechon([[700, 560], [756, 580], [790, 610], [806, 648]], 92, 78)}
+    <path d="M242 760C216 600 220 430 270 320C320 200 400 130 490 130C580 130 670 200 710 320C760 430 770 600 740 760${ondas(740, 242, 760, 4, 54)}Z"/>
+    ${ojo(424, 380, 36, 44)}${ojo(568, 380, 36, 44)}
+    ${cachete(370, 466, 38, 25)}${cachete(622, 466, 38, 25)}
+    <path d="M436 452Q496 580 556 452Z"/>
+    <path d="M458 506Q496 474 534 506Q520 536 496 536Q472 536 458 506Z" stroke-width="12"/>
+  `);
+
+  /* ---------- Platillo volador: cúpula con un extraterrestre de un ojo que saluda, luces redondas, rayo de luz ---------- */
+  const lucesOvni = [[250, 530], [375, 537], [500, 540], [625, 537], [750, 530]]
+    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="28"/>`).join('');
+
+  add('ovni', 'Platillo volador', `
+    ${estrella(140, 160, 56, -12, 14)}${estrella(870, 150, 50, 12, 14)}
+    ${estrella(110, 420, 44, 8, 14)}${estrella(900, 400, 46, -8, 14)}
+    <path d="M420 600L260 880A240 44 0 0 0 740 880L580 600Z"/>
+    <path d="M352 719L303 805Q500 846 697 805L648 719Q500 750 352 719Z"/>
+    <path d="M300 570C320 640 400 666 500 666C600 666 680 640 700 570Z"/>
+    <path d="M286 500C286 260 380 120 500 120C620 120 714 260 714 500Z"/>
+    ${linea('M470 270L436 206M530 270L564 206', 14)}
+    <circle cx="432" cy="198" r="25"/><circle cx="568" cy="198" r="25"/>
+    <path d="M420 520C420 450 450 410 500 410C550 410 580 450 580 520Z"/>
+    ${mechon([[556, 440], [600, 426], [630, 394], [640, 362]], 50, 46)}
+    ${manopla(648, 326, 20)}
+    <ellipse cx="500" cy="330" rx="100" ry="86"/>
+    ${ojo(500, 312, 36, 42)}
+    ${cachete(432, 358, 28, 18)}${cachete(568, 358, 28, 18)}
+    ${linea('M478 376q22 18 44 0')}
+    <ellipse cx="500" cy="532" rx="410" ry="64"/>
+    ${lucesOvni}
   `);
 })(window.CL);

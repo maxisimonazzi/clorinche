@@ -1,5 +1,6 @@
 /* Colorinche — js/drawings/granja.js
-   Dibujos para colorear de la categoría "Granja": vaca, chancho, gallina, oveja, caballo y pato.
+   Dibujos para colorear de la categoría "Granja": vaca, chancho, gallina, oveja, caballo, pato, pollito,
+   cabra, burro, pavo y tractor.
    Lienzo 1000 × 1000, contorno 16 (ver dev/ARQUITECTURA.md, sección 5). El orden importa: lo que va
    adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */
 'use strict';
@@ -192,5 +193,157 @@
     ${cachete(405, 352)}
     <path d="M55 750q44-35 89 0t89 0 89 0 89 0 89 0 89 0 89 0 89 0 89 0 89 0v5C945 840 780 895 500 895 220 895 55 840 55 755Z"/>
     <path d="M170 815q40-25 80 0M455 860q40-25 80 0M730 825q40-25 80 0" fill="none" stroke-width="12"/>
+  `);
+
+  /* ---------- Pollito: bolita saliendo del huevo (la cáscara de abajo como pantaloncito), alitas, pico y patitas ---------- */
+  // Pie de pollito: pierna corta que se abre en tres deditos redondos (una sola zona: pierna + pie).
+  const piePollito = (x) =>
+    `<path d="M${x - 24} 700V844C${x - 28} 860 ${x - 60} 862 ${x - 66} 882A22 22 0 0 0 ${x - 22} 882` +
+    `A22 22 0 0 0 ${x + 22} 882A22 22 0 0 0 ${x + 66} 882C${x + 60} 862 ${x + 28} 860 ${x + 24} 844V700Z"/>`;
+  // Alita izquierda levantada (saludando), con tres plumitas en el borde de abajo; la derecha es su espejo.
+  const alaPollito = '<path d="M300 462A32 32 0 0 1 244 442A32 32 0 0 1 200 402A34 34 0 0 1 166 348' +
+    'C150 310 170 286 200 296 240 308 270 328 300 350Z"/>';
+  add('pollito', 'Pollito', `
+    ${pasto()}
+    ${piePollito(405)}${piePollito(595)}
+    ${alaPollito}<g transform="translate(1000 0) scale(-1 1)">${alaPollito}</g>
+    <circle cx="500" cy="410" r="230"/>
+    <g transform="rotate(-12 500 210)"><path d="M380 232A120 110 0 0 1 620 232L580 265 540 232 500 265 460 232 420 265Z"/></g>
+    ${ojo(430, 362, 30, 36)}${ojo(570, 362, 30, 36)}
+    ${cachete(378, 435)}${cachete(622, 435)}
+    <path d="M460 414Q500 400 540 414Q527 462 500 468 473 462 460 414Z"/>
+    <path d="M250 560A250 215 0 0 0 750 560L700 500 650 570 600 500 550 570 500 500 450 570 400 500 350 570 300 500Z"/>
+  `);
+
+  /* ---------- Cabra: cuernos curvos hacia atrás, chivita, orejas a los costados, pezuñas y colita parada ---------- */
+  add('cabra', 'Cabra', `
+    ${pasto()}
+    <path d="M800 490C812 440 840 398 876 376Q900 364 906 384C900 420 878 460 850 520Z"/>
+    ${par(410, 58, 68, 660, 72)}${par(712, 58, 68, 660, 72)}
+    <path d="M370 440H740C820 440 868 496 868 570 868 648 820 708 740 708H470C400 708 370 660 370 600Z"/>
+    <path d="M205 228C193 150 227 88 287 72Q315 66 311 92C273 104 255 150 259 212Z"/>
+    <path d="M333 200C329 130 367 75 433 66Q461 64 455 92C411 100 383 148 385 206Z"/>
+    <path d="M167 285C125 270 78 282 50 318 80 350 131 352 175 336Z"/>
+    <path d="M423 285C465 270 512 282 540 318 510 350 459 352 415 336Z"/>
+    <path d="M259 525C253 575 271 622 297 652 317 620 335 575 331 525Z"/>
+    <path d="M295 178C387 178 445 240 445 315 445 385 410 440 375 484H215C180 440 145 385 145 315 145 240 203 178 295 178Z"/>
+    <ellipse cx="295" cy="482" rx="98" ry="66"/>
+    ${ojo(247, 312)}${ojo(343, 312)}
+    ${cachete(209, 382, 30, 20)}${cachete(381, 382, 30, 20)}
+    <ellipse cx="265" cy="470" rx="12" ry="16" fill="#000"/>
+    <ellipse cx="325" cy="470" rx="12" ry="16" fill="#000"/>
+    <path d="M267 510q28 20 56 0" fill="none" stroke-width="12"/>
+  `);
+
+  /* ---------- Burro: orejas larguísimas, hocico grande, crin corta y parada, mantita y cola con pompón ---------- */
+  // Punto de una cúbica k = [[x,y] ×4] en t, corrido `off` u sobre la normal izquierda (en pantalla) del avance.
+  function sobre(k, t, off = 0) {
+    const s = 1 - t, [a, b, c, d] = k;
+    const f = (i) => s * s * s * a[i] + 3 * s * s * t * b[i] + 3 * s * t * t * c[i] + t * t * t * d[i];
+    const g = (i) => 3 * (s * s * (b[i] - a[i]) + 2 * s * t * (c[i] - b[i]) + t * t * (d[i] - c[i]));
+    const l = Math.hypot(g(0), g(1));
+    return [r0(f(0) + (g(1) / l) * off), r0(f(1) - (g(0) / l) * off)];
+  }
+  /* Crin corta y parada sobre el borde k (cúbica) entre t0 y t1: n mechones redondeados (medias elipses de
+     alto h) cuya base queda `fuera` u afuera del borde (así forman una sola zona) y que se meten `aden` u
+     adentro por debajo de la pieza que va encima. (x0, y0): punto escondido detrás de la cabeza. */
+  function crin(k, t0, t1, n, fuera, aden, h, x0, y0) {
+    let d = `M${x0} ${y0}L${sobre(k, t0, fuera).join(' ')}`;
+    let [px, py] = sobre(k, t0, fuera);
+    for (let i = 1; i <= n; i++) {
+      const [x, y] = sobre(k, t0 + ((t1 - t0) * i) / n, fuera);
+      d += `A${r0(Math.hypot(x - px, y - py) / 2)} ${h} ${r0((Math.atan2(y - py, x - px) * 180) / Math.PI)} 0 1 ${x} ${y}`;
+      px = x; py = y;
+    }
+    for (let i = 8; i >= 0; i--) d += `L${sobre(k, t0 + ((t1 - t0) * i) / 8, -aden).join(' ')}`;
+    return `<path d="${d}Z"/>`;
+  }
+  // Oreja izquierda de burro: larga, con la puntita marcada (la línea termina justo sobre el contorno),
+  // inclinada hacia afuera; la derecha es su espejo.
+  const orejaBurro =
+    '<g transform="rotate(-15 215 280)"><path d="M165 280C150 200 160 110 190 65 200 50 230 50 240 65 270 110 280 200 265 280Z"/>' +
+    '<path d="M168 124Q215 110 262 124" fill="none" stroke-width="12"/></g>';
+  // Borde de atrás del cuello (lo sigue la crin).
+  const cuelloBurro = [[370, 280], [430, 320], [480, 430], [565, 460]];
+  add('burro', 'Burro', `
+    ${pasto()}
+    <path d="M860 520C905 505 925 470 918 425" fill="none"/>
+    ${nube(918, 378, 36, 46, 6)}
+    ${par(425, 58, 72, 660, 72)}${par(712, 58, 72, 660, 72)}
+    ${crin(cuelloBurro, 0.08, 0.85, 4, 26, 30, 34, 300, 330)}
+    <path d="M410 650C398 600 380 550 355 500L370 280C430 320 480 430 565 460H760C830 460 875 510 875 580V625C875 685 830 720 760 720H500C450 720 415 690 410 650Z"/>
+    <path d="M590 460H762L770 612A27 27 0 0 1 722 612A27 27 0 0 1 675 612A27 27 0 0 1 628 612A27 27 0 0 1 580 612Z"/>
+    <path d="M676 574C648 554 631 536 631 518 631 504 641 494 654 494 664 494 673 501 676 510 679 501 688 494 698 494 711 494 721 504 721 518 721 536 704 554 676 574Z"/>
+    ${orejaBurro}<g transform="translate(550 0) scale(-1 1)">${orejaBurro}</g>
+    <ellipse cx="275" cy="345" rx="140" ry="120"/>
+    <ellipse cx="275" cy="482" rx="122" ry="82"/>
+    ${ojo(228, 316, 26, 32)}${ojo(322, 316, 26, 32)}
+    ${cachete(192, 378, 30, 20)}${cachete(358, 378, 30, 20)}
+    <ellipse cx="240" cy="470" rx="13" ry="17" fill="#000"/>
+    <ellipse cx="310" cy="470" rx="13" ry="17" fill="#000"/>
+    <path d="M243 518q32 22 64 0" fill="none" stroke-width="12"/>
+  `);
+
+  /* ---------- Pavo: cola en abanico enorme, cuerpo redondo, moco rojo junto al pico y patitas ---------- */
+  /* Abanico de n plumas de punta redonda entre los ángulos a0 y a1 (grados, sentido horario desde las 3), con
+     centro (cx, cy) y radio r en las uniones. Rayas entre plumas y una franja concéntrica a radio rb que le
+     marca la punta a cada pluma. El centro queda tapado por el cuerpo. */
+  function abanico(cx, cy, r, n, a0, a1, rb) {
+    const P = (a, rr) => [r0(cx + rr * Math.cos((a * Math.PI) / 180)), r0(cy + rr * Math.sin((a * Math.PI) / 180))];
+    const paso = (a1 - a0) / n, ra = r0(2 * r * Math.sin((paso * Math.PI) / 360) * 0.62);
+    let d = `M${cx} ${cy}L${P(a0, r).join(' ')}`, rayas = '';
+    for (let i = 1; i <= n; i++) {
+      const p = P(a0 + i * paso, r).join(' ');
+      d += `A${ra} ${ra} 0 0 1 ${p}`;
+      if (i < n) rayas += `M${cx} ${cy}L${p}`;
+    }
+    return `<path d="${d}Z"/><path d="${rayas}M${P(a0, rb).join(' ')}A${rb} ${rb} 0 1 1 ${P(a1, rb).join(' ')}" fill="none"/>`;
+  }
+  // Alita izquierda del pavo, plegada al costado del cuerpo, con plumitas abajo; la derecha es su espejo.
+  const alaPavo = '<path d="M345 560C300 565 255 600 240 650A28 28 0 0 0 272 690A28 28 0 0 0 310 710A28 28 0 0 0 350 706' +
+    'C368 670 370 610 345 560Z"/>';
+  add('pavo', 'Pavo', `
+    ${pasto()}
+    ${abanico(500, 585, 410, 7, 165, 375, 330)}
+    ${piePollito(405)}${piePollito(595)}
+    <ellipse cx="500" cy="610" rx="200" ry="160"/>
+    ${alaPavo}<g transform="translate(1000 0) scale(-1 1)">${alaPavo}</g>
+    <circle cx="500" cy="355" r="140"/>
+    ${ojo(450, 330)}${ojo(550, 330)}
+    ${cachete(420, 398, 30, 20)}${cachete(580, 398, 30, 20)}
+    <path d="M486 398C470 400 462 414 462 432 462 448 452 462 452 480A30 30 0 0 0 512 484C512 464 500 452 498 438Z"/>
+    <path d="M470 382Q500 370 530 382Q518 424 500 434 482 424 470 382Z"/>
+  `);
+
+  /* ---------- Tractor: rueda de atrás enorme con tacos, rueda chica adelante, cabina, caño con humo y carita ---------- */
+  // Rueda de tractor: cubierta con n tacos (entre los radios r y R), llanta (radio rl) y maza (radio rm) con tuerca.
+  function ruedaTractor(cx, cy, R, r, n, rl, rm) {
+    const P = (a, rr) => `${r0(cx + rr * Math.cos(a))} ${r0(cy + rr * Math.sin(a))}`;
+    const paso = (2 * Math.PI) / n, base = paso * 0.3, punta = paso * 0.22;
+    let d = '';
+    for (let i = 0; i < n; i++) {
+      const a = i * paso;
+      d += `${i ? `A${r} ${r} 0 0 1 ` : 'M'}${P(a - base, r)}L${P(a - punta, R)}A${R} ${R} 0 0 1 ${P(a + punta, R)}L${P(a + base, r)}`;
+    }
+    return `<path d="${d}A${r} ${r} 0 0 1 ${P(-base, r)}Z"/><circle cx="${cx}" cy="${cy}" r="${rl}" stroke-width="12"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="${rm}" stroke-width="12"/><circle cx="${cx}" cy="${cy}" r="10" fill="#000" stroke="none"/>`;
+  }
+  add('tractor', 'Tractor', `
+    ${pasto()}
+    ${nube(292, 156, 58, 44, 7)}${nube(384, 256, 40, 32, 6)}
+    <path d="M356 480V346Q356 330 372 330H396Q412 330 412 346V480Z"/>
+    <path d="M490 245H850V600H490Z"/>
+    <path d="M586 298H777Q803 298 803 324V560H560V324Q560 298 586 298Z"/>
+    <rect x="478" y="186" width="402" height="64" rx="22"/>
+    <path d="M150 480H540V700H150C128 700 110 682 110 660V520C110 498 128 480 150 480Z"/>
+    <path d="M415 700A245 245 0 0 1 905 700Z"/>
+    ${ruedaTractor(660, 700, 205, 183, 12, 120, 48)}
+    <circle cx="240" cy="780" r="110"/>
+    <circle cx="240" cy="780" r="52" stroke-width="12"/>
+    <circle cx="240" cy="780" r="10" fill="#000" stroke="none"/>
+    <path d="M110 520C177 520 177 600 110 600Z"/>
+    ${ojo(232, 548, 25, 31)}${ojo(322, 548, 25, 31)}
+    ${cachete(192, 612, 30, 20)}${cachete(362, 612, 30, 20)}
+    <path d="M249 600q28 20 56 0" fill="none" stroke-width="12"/>
   `);
 })(window.CL);
