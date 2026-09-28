@@ -60,11 +60,13 @@
 
   // Sol con carita (radio de la cara 105) y rayos de línea gruesa que flotan en el cielo, largos y cortos
   // alternados. Los rayos no cortan el cielo: quedan sueltos, a 24 u de la cara.
+  // o.asoma = true: sólo los rayos de arriba (el sol se asoma detrás de algo).
   const sol = (cx, cy, o = {}) => {
-    const { r = 105, n = 12, g = 24, l1 = 48, l2 = 30, fase = -90 } = o;
+    const { r = 105, n = 12, g = 24, l1 = 48, l2 = 30, fase = -90, asoma = false } = o;
     let d = '';
     for (let i = 0; i < n; i++) {
       const a = (fase + i * 360 / n) * RAD, l = i % 2 ? l2 : l1, c = Math.cos(a), s = Math.sin(a);
+      if (asoma && s > 0.01) continue;
       d += `M${R(cx + (r + g) * c)} ${R(cy + (r + g) * s)}L${R(cx + (r + g + l) * c)} ${R(cy + (r + g + l) * s)}`;
     }
     return `<path d="${d}" fill="none"/><circle cx="${cx}" cy="${cy}" r="${r}"/>` +
@@ -101,6 +103,11 @@
     `M${x} ${y}Q${x + 8} ${y - 26} ${x + 32} ${y - 32}`;
   // Pastito en zigzag (tres puntas, la del medio más alta) apoyado en (x, y).
   const pastito = (x, y) => `M${x - 36} ${y}l12-30 12 30 12-40 12 40 12-30 12 30`;
+
+  // Tubo grueso con puntas redondas a lo largo de un recorrido (puede tener varias ramas en el mismo `d`):
+  // contorno negro de 16 y adentro blanco de ancho w. Todas las ramas forman UNA sola zona (algas, corales).
+  const tubo = (d, w = 46) =>
+    `<path d="${d}" fill="none" stroke-width="${w + 32}"/><path d="${d}" fill="none" stroke="#fff" stroke-width="${w}"/>`;
 
   // Almenas (comandos relativos): borde de arriba de una torre hacia la derecha desde el punto actual,
   // n dientes de ancho w y alto h separados por huecos de ancho w. Con w ≥ 41 quedan ≥ 25 u libres.
@@ -177,7 +184,7 @@
       `<circle cx="124" cy="798" r="22"/>`;
     add('playa', 'Playa', `
       ${sol(808, 196)}
-      ${nube(470, 110, 112, 54)}
+      ${nube(476, 112, 122, 60)}${carita(476, 102, { ex: 34, er: [13, 17], cx: 62, cy: 26, cr: [24, 15], sy: 14, sw: 12, sh: 11 })}
       <path d="M96 126q26-30 52 0q26-30 52 0" fill="none" stroke-width="14"/>
       <path d="M-30 440H1030V1030H-30Z"/>
       <path d="${ola(530, 120, 24)}" fill="none"/>
@@ -273,39 +280,318 @@
     // Edificios de fondo (la base queda tapada por la vereda). Las ventanas quedan a ≥ 42 u de los bordes
     // y de lo que va adelante (semáforo, árbol, colectivo).
     const edificios =
-      `<rect x="-30" y="230" width="262" height="460"/>` + ventana(60, 290, 100) +
-      `<rect x="232" y="200" width="240" height="490"/>` + ventana(302, 250, 100) + ventana(302, 372, 100) + ventana(302, 494, 100) +
-      `<rect x="472" y="290" width="260" height="400"/>` + ventana(514, 340) + ventana(622, 340) + ventana(514, 460) + ventana(622, 460) +
-      `<rect x="732" y="250" width="300" height="440"/>` + ventana(778, 300) + ventana(886, 300);
-    // Colectivo mirando a la derecha: carrocería, tres ventanillas, parabrisas, carita, faro y ruedas.
+      `<rect x="-30" y="180" width="262" height="510"/>` + ventana(64, 224, 100, 70) +
+      `<rect x="232" y="130" width="240" height="560"/>` + ventana(302, 176, 100, 70) + ventana(302, 288, 100, 70) + ventana(302, 400, 100, 70) +
+      `<rect x="472" y="290" width="260" height="400"/>` + ventana(515, 340, 66, 72) + ventana(624, 340, 66, 72) + ventana(515, 456, 66, 72) + ventana(624, 456, 66, 72) +
+      `<rect x="732" y="250" width="300" height="440"/>` + ventana(775, 300) + ventana(888, 300);
+    // Colectivo mirando a la derecha: carrocería, tres ventanillas y parabrisas, carita entre las ruedas,
+    // faro y ruedas.
     const colectivo =
-      `<rect x="330" y="636" width="490" height="266" rx="44"/>` +
-      ventana(368, 676, 96, 84) + ventana(506, 676, 96, 84) + ventana(644, 676, 80, 84) +
-      `<path d="M766 676H800Q820 676 820 700V760H766Z"/>` +
-      ojo(612, 818, 16, 20) + ojo(700, 818, 16, 20) +
-      cachete(566, 860, 24, 15) + cachete(746, 860, 24, 15) + sonrisa(656, 850, 18, 16) +
-      `<path d="M820 820C790 824 790 870 820 874Z"/>` +
-      `<circle cx="440" cy="902" r="54"/><circle cx="440" cy="902" r="12" fill="#000" stroke="none"/>` +
-      `<circle cx="718" cy="902" r="54"/><circle cx="718" cy="902" r="12" fill="#000" stroke="none"/>`;
-    // Semáforo: caja con tres luces sobre un poste.
+      `<rect x="300" y="600" width="540" height="300" rx="44"/>` +
+      ventana(342, 644, 90, 80) + ventana(474, 644, 90, 80) + ventana(606, 644, 90, 80) +
+      `<path d="M738 644H796Q840 644 840 688V724H748Q738 724 738 714Z"/>` +
+      ojo(540, 782, 15, 19) + ojo(610, 782, 15, 19) +
+      cachete(497, 838, 24, 15) + cachete(653, 838, 24, 15) + sonrisa(575, 826, 16, 16) +
+      `<path d="M840 770C814 774 814 822 840 826Z"/>` +
+      `<circle cx="390" cy="900" r="52"/><circle cx="390" cy="900" r="12" fill="#000" stroke="none"/>` +
+      `<circle cx="760" cy="900" r="52"/><circle cx="760" cy="900" r="12" fill="#000" stroke="none"/>`;
+    // Semáforo: caja con tres luces sobre un poste corto.
     const semaforo =
-      `<path d="M95 670V742" fill="none" stroke-width="22"/>` +
-      `<rect x="40" y="400" width="110" height="272" rx="26"/>` +
-      `<circle cx="95" cy="453" r="28"/><circle cx="95" cy="536" r="28"/><circle cx="95" cy="619" r="28"/>`;
-    // Árbol de vereda: tronco y copa redonda festoneada.
+      `<path d="M96 630V716" fill="none" stroke-width="22"/>` +
+      `<rect x="34" y="340" width="124" height="300" rx="28"/>` +
+      `<circle cx="96" cy="400" r="25"/><circle cx="96" cy="490" r="25"/><circle cx="96" cy="580" r="25"/>`;
+    // Árbol de vereda: tronco y copa redonda festoneada que pasa el borde derecho.
     const arbol =
-      `<rect x="886" y="590" width="52" height="150" rx="8"/>` +
-      feston(912, 520, 92, 86, 9, -90 * RAD, 0.6);
+      `<rect x="900" y="580" width="52" height="136" rx="8"/>` +
+      feston(935, 516, 100, 84, 9, -90 * RAD, 0.6);
     add('ciudad', 'Ciudad', `
-      ${nube(150, 110, 104, 50)}${carita(150, 102, { ex: 30, er: [11, 14], cx: 50, cy: 20, cr: [18, 12], sy: 10, sw: 11, sh: 10 })}
-      ${nube(612, 110, 96, 46, 7)}
+      ${nube(122, 94, 72, 34, 7)}${nube(884, 124, 70, 34, 7)}
+      ${nube(640, 128, 122, 60)}${carita(640, 118, { ex: 34, er: [13, 17], cx: 62, cy: 26, cr: [24, 15], sy: 14, sw: 12, sh: 11 })}
       ${edificios}
       <path d="M-30 690H1030V1030H-30Z"/>
       <path d="M-30 760H1030" fill="none"/>
-      <rect x="20" y="866" width="120" height="44" rx="18"/><rect x="860" y="866" width="120" height="44" rx="18"/>
+      <rect x="-40" y="866" width="170" height="44" rx="18"/><rect x="880" y="866" width="170" height="44" rx="18"/>
       ${semaforo}
       ${arbol}
       ${colectivo}
+    `);
+  }
+
+  /* ---------- Bosque: árboles grandes y pinos, hongos, arbustos, sendero, conejito y el sol que se asoma ---------- */
+  {
+    // Bosque lejano: fila de copas redondas (una sola zona) detrás de la que se asoma el sol.
+    const cimas = [[-30, 416], [80, 404], [200, 420], [300, 402], [430, 424], [540, 410], [660, 420], [770, 402], [900, 422], [1030, 410]];
+    let lejos = 'M-30 1030V416';
+    for (let i = 1; i < cimas.length; i++) {
+      const [x0, y0] = cimas[i - 1], [x1, y1] = cimas[i], r = R(Math.hypot(x1 - x0, y1 - y0) * 0.56);
+      lejos += `A${r} ${r} 0 0 1 ${x1} ${y1}`;
+    }
+    lejos += 'V1030Z';
+    // Árbol de copa redonda: tronco y copa festoneada.
+    const arbol = (x, yc, r, yb) =>
+      `<rect x="${x - 28}" y="${yc}" width="56" height="${yb - yc}" rx="8"/>` + feston(x, yc, r, R(r * 0.92), 9, -90 * RAD, 0.6);
+    // Hongo: sombrero en cúpula con lunares (bien adentro) sobre un tronquito. (x, y) = base del sombrero.
+    const hongo = (x, y, w, lunares) => {
+      const k = (v) => R(v * w);
+      return `<path d="M${x - k(0.15)} ${y - 10}C${x - k(0.19)} ${y + k(0.12)} ${x - k(0.18)} ${y + k(0.26)} ${x - k(0.14)} ${y + k(0.34)}` +
+        `H${x + k(0.14)}C${x + k(0.18)} ${y + k(0.26)} ${x + k(0.19)} ${y + k(0.12)} ${x + k(0.15)} ${y - 10}Z"/>` +
+        `<path d="M${x - k(0.5)} ${y}C${x - k(0.5)} ${y - k(0.66)} ${x + k(0.5)} ${y - k(0.66)} ${x + k(0.5)} ${y}Q${x} ${y - k(0.08)} ${x - k(0.5)} ${y}Z"/>` +
+        lunares.map(([dx, dy, r]) => `<circle cx="${x + dx}" cy="${y + dy}" r="${r}"/>`).join('');
+    };
+    // Arbusto: festones arriba y base recta (y = base, w = ancho, h = alto).
+    const arbusto = (x, y, w, h, n = 5) => {
+      let d = `M${x - w / 2} ${y}`;
+      let px = x - w / 2, py = y;
+      for (let i = 1; i <= n; i++) {
+        const a = Math.PI + (i / n) * Math.PI, qx = R(x + (w / 2) * Math.cos(a)), qy = R(y + h * Math.sin(a) * 0.82);
+        const r = R(Math.hypot(qx - px, qy - py) * 0.58);
+        d += `A${r} ${r} 0 0 1 ${qx} ${qy}`;
+        px = qx; py = qy;
+      }
+      return `<path d="${d}Z"/>`;
+    };
+    // Conejito sentado de frente: orejas largas, cabeza grande con carita, cuerpo y patitas.
+    const conejo = (x, y) =>
+      `<ellipse cx="${x - 52}" cy="${y - 164}" rx="34" ry="80" transform="rotate(-12 ${x - 52} ${y - 164})"/>` +
+      `<ellipse cx="${x + 52}" cy="${y - 164}" rx="34" ry="80" transform="rotate(12 ${x + 52} ${y - 164})"/>` +
+      `<ellipse cx="${x}" cy="${y + 118}" rx="90" ry="62"/>` +
+      `<ellipse cx="${x - 46}" cy="${y + 170}" rx="36" ry="19"/><ellipse cx="${x + 46}" cy="${y + 170}" rx="36" ry="19"/>` +
+      `<circle cx="${x}" cy="${y}" r="100"/>` +
+      ojo(x - 36, y - 16, 16, 20) + ojo(x + 36, y - 16, 16, 20) +
+      cachete(x - 50, y + 34, 24, 15) + cachete(x + 50, y + 34, 24, 15) +
+      `<ellipse cx="${x}" cy="${y + 12}" rx="11" ry="8" fill="#000"/>` +
+      `<path d="M${x - 14} ${y + 26}q7 10 14 0q7 10 14 0" fill="none" stroke-width="10"/>`;
+    add('bosque', 'Bosque', `
+      ${sol(500, 196, { asoma: true })}
+      <path d="${lejos}"/>
+      <path d="M-30 636C200 610 400 646 600 630S900 612 1030 626V1030H-30Z"/>
+      <path d="M470 636C440 760 380 900 300 1030H700C620 900 560 760 530 636Z"/>
+      ${arbol(320, 420, 105, 690)}${arbol(680, 420, 105, 690)}
+      ${pino(110, 650, 180, 400, 36)}${pino(890, 650, 180, 400, 36)}
+      ${arbusto(110, 704, 220, 100)}${arbusto(890, 704, 220, 100)}
+      ${hongo(180, 876, 240, [[-58, -46, 20], [4, -86, 22], [62, -44, 19]])}
+      ${hongo(836, 930, 150, [[0, -50, 23]])}
+      ${conejo(500, 768)}
+    `);
+  }
+
+  /* ---------- Fondo del mar: algas, corales, peces, burbujas, cofre del tesoro, estrella y piedras ---------- */
+  {
+    // Pez mirando a la derecha: cola, aleta de arriba, cuerpo (con franja opcional) y carita: ojo adelante,
+    // cachete atrás y abajo del ojo, sonrisa en la punta. (x, y) = centro del cuerpo.
+    const pez = (x, y, rx, ry, franja) => {
+      const P = (fx, fy) => `${R(x + fx * rx)} ${R(y + fy * ry)}`;
+      let s = `<path d="M${P(-0.8, 0)}L${P(-1.42, -0.86)}Q${P(-1.2, 0)} ${P(-1.42, 0.86)}Z"/>` +
+        `<path d="M${P(0.3, -0.92)}C${P(0.1, -1.5)} ${P(-0.5, -1.72)} ${P(-0.66, -1.44)}C${P(-0.64, -1.2)} ${P(-0.54, -1)} ${P(-0.46, -0.86)}Z"/>` +
+        `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/>`;
+      if (franja) {
+        const yb = (dx) => R(ry * Math.sqrt(1 - (dx / rx) ** 2));
+        s += '<path d="' + franja.map((a) => `M${x + a} ${y - yb(a)}Q${x + a - 12} ${y} ${x + a} ${y + yb(a)}`).join('') + '" fill="none"/>';
+      }
+      return s + ojo(R(x + rx * 0.44), R(y - ry * 0.22), 17, 21) + cachete(R(x + rx * 0.14), R(y + ry * 0.36), 24, 15) +
+        sonrisa(R(x + rx * 0.78), R(y + ry * 0.18), 10, 10);
+    };
+    // Cofre del tesoro: tapa redondeada, caja, un fleje al medio y la cerradura (con ojo de llave) que tapa
+    // la unión entre tapa y caja.
+    const cofre =
+      `<path d="M400 800V744Q400 690 460 690H540Q600 690 600 744V800Z"/>` +
+      `<rect x="400" y="800" width="200" height="100" rx="10"/>` +
+      `<path d="M470 692V900M530 692V900" fill="none"/>` +
+      `<rect x="460" y="768" width="80" height="62" rx="14"/>` +
+      `<path d="M500 784a9 9 0 0 1 6 16l5 16h-22l5-16a9 9 0 0 1 6-16Z" fill="#000" stroke-width="4"/>`;
+    // Estrella de mar con carita (ojos y sonrisa; no le entran cachetes).
+    const estrellaMar = (x, y) =>
+      estrella(x, y, 100, 60, 6) + ojo(x - 22, y - 8, 13, 16) + ojo(x + 22, y - 8, 13, 16) + sonrisa(x, y + 20, 12, 12);
+    // Coral: tronco y dos ramas (un solo tubo).
+    const coral = (x, s = 1) =>
+      tubo(`M${x} 830V690M${x} 770Q${x - 50 * s} 760 ${x - 54 * s} 660M${x} 740Q${x + 50 * s} 730 ${x + 54 * s} 640`, 44);
+    add('fondo-del-mar', 'Fondo del mar', `
+      <path d="${ola(64, 120, 24)}" fill="none"/>
+      ${tubo('M92 830C62 770 122 720 92 650S62 530 100 400', 40)}
+      ${tubo('M908 830C938 770 878 700 908 620S938 470 900 340', 40)}
+      ${coral(272)}${coral(728, -1)}
+      <path d="M-30 730C90 724 190 744 280 776S420 802 500 802S800 792 1030 800V1030H-30Z"/>
+      <ellipse cx="864" cy="900" rx="82" ry="46"/><ellipse cx="760" cy="936" rx="46" ry="28"/>
+      ${cofre}
+      ${estrellaMar(150, 878)}
+      <g transform="translate(1040 0) scale(-1 1)">${pez(520, 430, 150, 95, [-92, -50])}</g>
+      ${pez(230, 210, 105, 66)}
+      <circle cx="366" cy="382" r="20"/><circle cx="348" cy="312" r="24"/><circle cx="402" cy="246" r="26"/>
+      <circle cx="790" cy="180" r="26"/><circle cx="846" cy="128" r="18"/>
+    `);
+  }
+
+  /* ---------- Espacio: cohete, luna con cráteres, planeta con anillo, planeta a rayas, platillo y estrellas ---------- */
+  {
+    // Cohete (de pie en coordenadas propias, centro en 0,0; se gira con el grupo): llama de dos capas,
+    // aletas, cuerpo con punta separada por una línea, franja y ventanita redonda.
+    const cohete =
+      `<path d="M-58 128Q-84 222 0 294Q84 222 58 128Z"/><path d="M-20 140Q-24 192 0 232Q24 192 20 140Z"/>` +
+      `<path d="M-66 30Q-138 60 -128 160L-60 124Z"/><path d="M66 30Q138 60 128 160L60 124Z"/>` +
+      `<path d="M-78 124V-40C-78 -130 -34 -190 0 -224C34 -190 78 -130 78 -40V124Q78 146 56 146H-56Q-78 146 -78 124Z"/>` +
+      `<path d="M-62 -118Q0 -140 62 -118M-78 70H78" fill="none"/>` +
+      `<circle cx="0" cy="-24" r="46"/>`;
+    // Planeta con anillo, un poco inclinado: el anillo pasa por detrás arriba y por delante abajo.
+    const anillo = (frente) =>
+      `<path d="M-196 0A196 60 0 0 ${frente ? 0 : 1} 196 0H92A92 26 0 0 ${frente ? 1 : 0} -92 0Z"/>`;
+    const saturno = (x, y) =>
+      `<g transform="translate(${x} ${y}) rotate(-14)">${anillo(false)}<circle r="106"/>${anillo(true)}</g>`;
+    // Luna grande en la esquina (pasa los bordes) con carita y cráteres.
+    const luna =
+      `<circle cx="140" cy="890" r="270"/>` +
+      `<circle cx="110" cy="700" r="34"/><circle cx="328" cy="926" r="30"/><circle cx="80" cy="940" r="28"/>` +
+      carita(200, 800);
+    // Platillo volador: domo, plato y lucecitas.
+    const platillo = (x, y) =>
+      `<path d="M${x - 54} ${y}C${x - 54} ${y - 104} ${x + 54} ${y - 104} ${x + 54} ${y}Z"/>` +
+      `<ellipse cx="${x}" cy="${y + 10}" rx="104" ry="38"/>` +
+      `<circle cx="${x - 56}" cy="${y + 14}" r="9" fill="#000"/><circle cx="${x}" cy="${y + 24}" r="9" fill="#000"/><circle cx="${x + 56}" cy="${y + 14}" r="9" fill="#000"/>`;
+    // Brillito de cuatro puntas (líneas sueltas).
+    const brillo = (x, y, l = 22) => `M${x - l} ${y}H${x + l}M${x} ${y - l}V${y + l}`;
+    add('espacio', 'Espacio', `
+      ${luna}
+      <circle cx="170" cy="190" r="74"/><path d="M104 158Q170 176 236 158M100 214Q170 232 240 214" fill="none"/>
+      ${saturno(760, 226)}
+      ${platillo(840, 610)}
+      <g transform="rotate(35 520 540)"><g transform="translate(520 540)">${cohete}</g></g>
+      ${estrella(430, 116, 56, 30)}${estrella(918, 424, 50, 27)}${estrella(620, 880, 56, 30)}${estrella(350, 410, 50, 27)}
+      <path d="${brillo(70, 430)}${brillo(900, 880)}${brillo(560, 110)}" fill="none" stroke-width="12"/>
+    `);
+  }
+
+  /* ---------- Polo Norte: iglú de bloques, pingüino, oso polar sobre un témpano, montañas y copos ---------- */
+  {
+    // Copo de nieve de línea (seis brazos con una V cada uno); queda suelto en el cielo.
+    const copo = (x, y, r = 58) => {
+      let d = '';
+      for (let i = 0; i < 6; i++) {
+        const a = (i * 60 - 90) * RAD, c = Math.cos(a), s = Math.sin(a), m = r * 0.56, v = r * 0.34;
+        d += `M${x} ${y}L${R(x + r * c)} ${R(y + r * s)}`;
+        for (const g of [-45, 45]) {
+          const b = a + g * RAD;
+          d += `M${R(x + m * c)} ${R(y + m * s)}l${R(v * Math.cos(b))} ${R(v * Math.sin(b))}`;
+        }
+      }
+      return d;
+    };
+    // Iglú: domo de bloques en tres filas (las juntas de abajo coinciden con el túnel de la entrada) y el
+    // túnel con la puerta oscura.
+    const iglu = (x, y) => {
+      const ex = (dy) => R(190 * Math.sqrt(1 - (dy / 210) ** 2));
+      return `<path d="M${x - 190} ${y}A190 210 0 0 1 ${x + 190} ${y}Z"/>` +
+        `<path d="M${x - ex(60)} ${y - 60}H${x + ex(60)}M${x - ex(140)} ${y - 140}H${x + ex(140)}` +
+        `M${x - 100} ${y - 60}V${y - 140}M${x + 100} ${y - 60}V${y - 140}M${x} ${y - 140}V${y - 210}" fill="none"/>` +
+        `<path d="M${x - 84} ${y}A84 84 0 0 1 ${x + 84} ${y}Z"/><path d="M${x - 42} ${y}A42 42 0 0 1 ${x + 42} ${y}Z"/>`;
+    };
+    // Pingüino de frente: aletas, cuerpo en huevo con la capucha oscura arriba, carita, pico y patas.
+    const pinguino = (x, y) =>
+      `<ellipse cx="${x - 118}" cy="${y + 40}" rx="26" ry="62" transform="rotate(24 ${x - 118} ${y + 40})"/>` +
+      `<ellipse cx="${x + 118}" cy="${y + 40}" rx="26" ry="62" transform="rotate(-24 ${x + 118} ${y + 40})"/>` +
+      `<ellipse cx="${x}" cy="${y}" rx="126" ry="146"/>` +
+      `<path d="M${x - 108} ${y - 74}Q${x - 52} ${y - 82} ${x} ${y - 50}Q${x + 52} ${y - 82} ${x + 108} ${y - 74}" fill="none"/>` +
+      `<ellipse cx="${x - 44}" cy="${y + 146}" rx="38" ry="20"/><ellipse cx="${x + 44}" cy="${y + 146}" rx="38" ry="20"/>` +
+      ojo(x - 42, y - 8, 16, 20) + ojo(x + 42, y - 8, 16, 20) +
+      cachete(x - 74, y + 44, 24, 15) + cachete(x + 74, y + 44, 24, 15) +
+      `<path d="M${x - 24} ${y + 14}Q${x} ${y + 2} ${x + 24} ${y + 14}Q${x + 16} ${y + 44} ${x} ${y + 52}Q${x - 16} ${y + 44} ${x - 24} ${y + 14}Z"/>`;
+    // Oso polar sentado de frente: orejas, cuerpo, patas, cabeza con hocico, nariz y boquita.
+    const oso = (x, y) =>
+      `<circle cx="${x - 68}" cy="${y - 78}" r="34"/><circle cx="${x + 68}" cy="${y - 78}" r="34"/>` +
+      `<ellipse cx="${x}" cy="${y + 120}" rx="100" ry="74"/>` +
+      `<ellipse cx="${x - 50}" cy="${y + 186}" rx="38" ry="22"/><ellipse cx="${x + 50}" cy="${y + 186}" rx="38" ry="22"/>` +
+      `<circle cx="${x}" cy="${y}" r="96"/>` +
+      ojo(x - 36, y - 18, 15, 19) + ojo(x + 36, y - 18, 15, 19) +
+      `<ellipse cx="${x}" cy="${y + 38}" rx="32" ry="24"/>` +
+      `<ellipse cx="${x}" cy="${y + 28}" rx="10" ry="7" fill="#000"/>` +
+      `<path d="M${x - 12} ${y + 42}q6 8 12 0q6 8 12 0" fill="none" stroke-width="10"/>`;
+    add('polo-norte', 'Polo Norte', `
+      <path d="${copo(120, 130, 70)}${copo(540, 120, 60)}${copo(930, 116, 50)}" fill="none" stroke-width="13"/>
+      ${montana(-30, 720, 160, 300, 380, 620, 86)}${montana(230, 620, 420, 250, 640, 620, 90)}
+      <path d="M-30 560H1030V1030H-30Z"/>
+      <path d="M696 600L716 530L746 500H918L948 530L962 600Z"/>
+      ${oso(832, 320)}
+      <path d="M-30 670Q60 650 150 672T330 668T510 672T690 668T870 672T1050 668V1030H-30Z"/>
+      ${iglu(230, 860)}
+      ${pinguino(640, 800)}
+    `);
+  }
+
+  /* ---------- Plaza: tobogán, hamaca, subibaja, arenero, banco, árboles y sol ---------- */
+  {
+    // Árbol de copa redonda con tronco (la copa festoneada tapa la punta del tronco).
+    const arbol = (x, yc, r, yb) =>
+      `<rect x="${x - 28}" y="${yc}" width="56" height="${yb - yc}" rx="8"/>` + feston(x, yc, r, R(r * 0.9), 9, -90 * RAD, 0.6);
+    // Tobogán: escalera (parantes y escalones en un solo tubo), plataforma y la rampa (otro tubo).
+    const tobogan =
+      tubo('M280 530C370 540 390 704 476 716', 44) +
+      tubo('M92 750V530M182 750V530M92 700H182M92 616H182', 26) +
+      `<rect x="66" y="506" width="232" height="48" rx="14"/>`;
+    // Hamaca: travesaño y dos patas en A (un tubo; las patas de adentro casi derechas para que el asiento
+    // quede lejos), sogas y asiento.
+    const hamaca =
+      tubo('M620 484H940M650 484L590 790M650 484L672 790M910 484L888 790M910 484L940 790', 26) +
+      `<path d="M754 513V700M806 513V700" fill="none" stroke-width="12"/>` +
+      `<rect x="738" y="696" width="84" height="44" rx="16"/>`;
+    // Banco: respaldo, asiento, soportes y patas.
+    const banco =
+      `<path d="M384 836V884M494 836V884M378 924V958M500 924V958" fill="none"/>` +
+      `<rect x="362" y="790" width="154" height="46" rx="14"/><rect x="352" y="880" width="174" height="46" rx="14"/>`;
+    // Arenero: marco de madera y arena adentro.
+    const arenero =
+      `<path d="M36 960L86 820H296L334 960Z"/><path d="M100 916L118 866H261L274 916Z"/>`;
+    // Subibaja: pie triangular y tabla inclinada.
+    const subibaja =
+      `<path d="M712 958L762 880L812 958Z"/>` +
+      `<rect x="610" y="876" width="304" height="46" rx="18" transform="rotate(-10 762 899)"/>`;
+    add('plaza', 'Plaza', `
+      ${sol(500, 172)}
+      ${arbol(84, 240, 104, 420)}${arbol(916, 240, 104, 420)}
+      <path d="M-30 404C200 384 400 414 600 400S860 384 1030 400V1030H-30Z"/>
+      ${tobogan}
+      ${hamaca}
+      ${arenero}
+      ${banco}
+      ${subibaja}
+    `);
+  }
+
+  /* ---------- Casita: casa con techo, chimenea con humo, puerta y ventanas, cerca, jardín, camino, árbol y sol ---------- */
+  {
+    // Ventana con cruz (cuatro vidrios).
+    const ventana = (x, y, s = 90) =>
+      `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="8"/>` +
+      `<path d="M${x + s / 2} ${y}V${y + s}M${x} ${y + s / 2}H${x + s}" fill="none" stroke-width="12"/>`;
+    // Cerca de tablas en punta pegadas entre sí, de x0 a x1 (base y): cada tabla es una zona.
+    const cerca = (x0, x1, y, w = 70, h = 110) => {
+      let s = '';
+      for (let x = x0; x < x1; x += w) s += `<path d="M${x} ${y}V${y - h + 26}L${x + w / 2} ${y - h}L${x + w} ${y - h + 26}V${y}Z"/>`;
+      return s;
+    };
+    // Tulipán: flor en copa con tres puntas, tallo que pasa el borde de abajo y una hoja.
+    const tulipan = (x, y, lado = 1) =>
+      `<path d="M${x} ${y + 20}V1030" fill="none"/>` +
+      `<path d="M${x} ${y + 82}Q${x + 52 * lado} ${y + 72} ${x + 64 * lado} ${y + 32}Q${x + 20 * lado} ${y + 42} ${x} ${y + 82}Z"/>` +
+      `<path d="M${x - 36} ${y - 8}L${x - 40} ${y - 58}L${x - 16} ${y - 34}L${x} ${y - 64}L${x + 16} ${y - 34}L${x + 40} ${y - 58}L${x + 36} ${y - 8}` +
+      `Q${x + 32} ${y + 26} ${x} ${y + 28}Q${x - 32} ${y + 26} ${x - 36} ${y - 8}Z"/>`;
+    // Casa: chimenea, paredes, techo con ventanita redonda, dos ventanas con cruz arriba y la puerta.
+    const casa =
+      `<rect x="360" y="250" width="52" height="160"/>` +
+      `<rect x="320" y="424" width="360" height="336" rx="6"/>` +
+      `<path d="M286 444L500 230L714 444Z"/>` +
+      `<circle cx="500" cy="362" r="34"/>` +
+      ventana(364, 490) + ventana(546, 490) +
+      `<path d="M464 760V668A36 36 0 0 1 536 668V760Z"/><circle cx="520" cy="710" r="7" fill="#000"/>`;
+    // El pasto empieza detrás de la cerca y de la casa (entre las puntas de las tablas se ve el cielo).
+    add('casita', 'Casita', `
+      ${sol(820, 170)}
+      ${nube(540, 96, 86, 42, 7)}
+      ${feston(292, 160, 66, 42, 7, 20 * RAD, 0.6)}
+      <rect x="862" y="590" width="56" height="140"/>
+      ${feston(894, 510, 112, 100, 9, -90 * RAD, 0.6)}
+      <path d="M-30 720H1030V1030H-30Z"/>
+      ${cerca(-30, 320, 760)}${cerca(680, 1030, 760)}
+      <path d="M464 760C440 860 404 950 380 1030H620C596 950 560 860 536 760Z"/>
+      ${casa}
+      ${tulipan(100, 872)}${tulipan(250, 888, -1)}${tulipan(750, 888)}${tulipan(900, 872, -1)}
     `);
   }
 })(window.CL);

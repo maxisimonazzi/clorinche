@@ -1,6 +1,7 @@
 /* Colorinche — js/drawings/dinosaurios.js
-   Dibujos para colorear de la categoría "Dinosaurios": T-rex, triceratops, diplodocus, estegosaurio
-   y pterodáctilo. Lienzo 1000 × 1000, contorno 16, detalles internos 12 (ver dev/ARQUITECTURA.md, sección 5).
+   Dibujos para colorear de la categoría "Dinosaurios": T-rex, triceratops, diplodocus, estegosaurio,
+   pterodáctilo, dino bebé, anquilosaurio, espinosaurio, parasaurolofo y velociraptor.
+   Lienzo 1000 × 1000, contorno 16, detalles internos 12 (ver dev/ARQUITECTURA.md, sección 5).
    El orden importa: lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás.
    Criterio de la categoría: los que están parados pisan la misma loma de pasto (como en granja) con
    patas cortas; el pterodáctilo vuela entre dos nubes. */
@@ -320,7 +321,8 @@
     );
   }
 
-  /* ---------- Piezas de los dibujos nuevos ---------- */
+  /* ---------- Piezas de los dibujos nuevos (dino bebé, anquilosaurio, espinosaurio, parasaurolofo y
+     velociraptor); usan también las piezas compartidas de arriba ---------- */
 
   // Sistema girado: (x, y) locales alrededor de (cx, cy), girados `grados` → "X Y" con enteros.
   const giro = (cx, cy, grados) => {
@@ -328,9 +330,7 @@
     return (x, y) => `${R(cx + x * c - y * s)} ${R(cy + x * s + y * c)}`;
   };
 
-  /* ---------- Dino bebé: asoma de un huevo grande; cáscara rota en zigzag abajo y un pedacito
-     de cáscara como sombrerito sobre la cabezota ---------- */
-  // Pinchito redondeado (tipo gomita) que sale de (bx, by) hacia (tx, ty), con base de ancho w.
+  // Pinchito triangular con la punta redondeada, de (bx, by) hacia (tx, ty), con base de ancho w.
   function pinchito(bx, by, tx, ty, w) {
     const L = Math.hypot(tx - bx, ty - by);
     const P = local(bx, by, tx - bx, ty - by);
@@ -338,6 +338,32 @@
       `C${P(w * 0.18, L)} ${P(w * 0.36, L * 0.36)} ${P(w / 2, 0)}Z"/>`;
   }
 
+  // Púa cónica de lados rectos con la punta redonda (radio r), de (bx, by) hacia (tx, ty), base w.
+  function pua(bx, by, tx, ty, w, r = 12) {
+    const L = Math.hypot(tx - bx, ty - by);
+    const P = local(bx, by, tx - bx, ty - by);
+    return `<path d="M${P(-w / 2, 0)}L${P(-r, L - r)}A${r} ${r} 0 0 1 ${P(r, L - r)}L${P(w / 2, 0)}Z"/>`;
+  }
+
+  // Punto del camino P (tramos cúbicos) cuya x está más cerca de x.
+  function enX(P, x) {
+    let best = null;
+    for (let i = 0; 3 * i + 3 < P.length; i++) {
+      const p = cruce(P, i, 0, x);
+      if (!best || Math.abs(p[0] - x) < Math.abs(best[0] - x)) best = p;
+    }
+    return best;
+  }
+
+  // Punto del tramo i de P en t y normal hacia "afuera" (a la izquierda del sentido del camino).
+  function normal(P, i, t) {
+    const p = sobre(P, i, t), a = sobre(P, i, Math.max(0, t - 0.02)), b = sobre(P, i, Math.min(1, t + 0.02));
+    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    return [p, (b[1] - a[1]) / l, -(b[0] - a[0]) / l];
+  }
+
+  /* ---------- Dino bebé: asoma de un huevo grande con la cáscara rota en zigzag, se agarra del borde
+     con las manitos y lleva un pedacito de cáscara como sombrerito sobre la cabezota ---------- */
   function bebeDino() {
     // Cascarita de arriba: domo con el borde de abajo en zigzag, inclinada sobre la cabeza.
     const g = giro(446, 216, -14);
@@ -378,31 +404,9 @@
     );
   }
 
-  /* ---------- Anquilosaurio: lomo acorazado (domo de placas en tres filas con pinchitos redondeados),
-     cola con porra al final, patas cortas y cabecita con cuernitos ---------- */
-  // Punto del camino P (tramos cúbicos) cuya x está más cerca de x.
-  function enX(P, x) {
-    let best = null;
-    for (let i = 0; 3 * i + 3 < P.length; i++) {
-      const p = cruce(P, i, 0, x);
-      if (!best || Math.abs(p[0] - x) < Math.abs(best[0] - x)) best = p;
-    }
-    return best;
-  }
-  // Punto del tramo i de P en t y normal hacia "afuera" (a la izquierda del sentido del camino).
-  function normal(P, i, t) {
-    const p = sobre(P, i, t), a = sobre(P, i, Math.max(0, t - 0.02)), b = sobre(P, i, Math.min(1, t + 0.02));
-    const l = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    return [p, (b[1] - a[1]) / l, -(b[0] - a[0]) / l];
-  }
-
-  // Púa cónica de lados rectos con la punta redonda (radio r), de (bx, by) hacia (tx, ty), base w.
-  function pua(bx, by, tx, ty, w, r = 12) {
-    const L = Math.hypot(tx - bx, ty - by);
-    const P = local(bx, by, tx - bx, ty - by);
-    return `<path d="M${P(-w / 2, 0)}L${P(-r, L - r)}A${r} ${r} 0 0 1 ${P(r, L - r)}L${P(w / 2, 0)}Z"/>`;
-  }
-
+  /* ---------- Anquilosaurio: lomo acorazado con dos filas de placas ovaladas y púas de punta redonda,
+     cola gruesa con porra al final y patas cortas. La cola sale del mismo cuerpo (así no parece una
+     tortuga) y la cabeza tiene hocico ---------- */
   function anquilosaurio() {
     // Silueta de una sola pieza: cola que sube desde la porra hasta la cadera, lomo largo y bajo,
     // hombro y pecho; la panza es plana sobre las patas y vuelve por abajo de la cola.
@@ -491,31 +495,88 @@
   /* ---------- Parasaurolofo: parado en dos patas, cresta larga en tubo curvada hacia atrás,
      pico de pato y manchas en el lomo ---------- */
   function parasaurolofo() {
+    const cuerpo = [[270, 680], [250, 560], [330, 450], [460, 446], [580, 442], [640, 540], [630, 640],
+      [620, 750], [540, 810], [440, 810], [340, 810], [280, 760], [270, 680]];
+    // Muslo: sale del costado de atrás y baja entre las dos patas.
+    const m0 = cruce(cuerpo, 3, 1, 704), m1 = cruce(cuerpo, 2, 0, 476);
     return (
       suelo() +
-      // Cola larga que baja hacia atrás
-      `<path d="M340 660C250 690 150 740 72 790C58 800 66 822 84 818C170 800 260 780 340 760Z"/>` +
-      // Patas (atrás del cuerpo)
-      pata(488, 100, 760) + pata(352, 112, 760) +
-      // Cuerpo parado (como un huevo inclinado) con manchas en el lomo
-      `<path d="M300 700C280 580 340 460 460 440C560 424 620 480 630 560C640 660 600 760 500 800` +
-      `C400 836 316 800 300 700Z"/>` +
-      mancha(390, 520, 44, 32, -40) + mancha(352, 640, 42, 30, -60) + mancha(460, 600, 40, 30, -20) +
-      // Cuello
-      `<path d="M500 470C520 400 560 340 600 300L680 330C650 380 620 440 610 520Z"/>` +
+      // Cola larga y gruesa que baja hacia atrás
+      `<path d="M320 640C230 680 140 730 70 780C56 792 64 814 82 810C170 790 250 770 320 760Z"/>` +
+      // Cuello curvo (la base queda tapada por el cuerpo y la punta por la cabeza)
+      `<path d="M470 520C500 440 540 370 590 320L700 340C660 390 630 460 620 560Z"/>` +
+      // Patas (atrás del cuerpo), bien separadas
+      pata(508, 104, 760) + pata(286, 118, 760) +
+      // Cuerpo panzón con manchas en el lomo y el muslo marcado
+      `<path d="${d3(cuerpo)}Z"/>` +
+      mancha(380, 526, 44, 32, -30) + mancha(500, 540, 38, 28, 10) +
+      linea(`M${P2(m0)}C318 620 420 604 452 662C474 704 480 760 ${P2(m1)}`) +
+      mancha(362, 716, 42, 30, -10) +
       // Bracito
-      `<path d="M596 560C656 544 696 556 706 584C712 602 698 614 684 606C684 622 666 628 656 614` +
-      `C644 600 622 600 596 610Z"/>` +
+      `<path d="M600 560C660 544 700 556 710 584C716 602 702 614 688 606C688 622 670 628 660 614` +
+      `C648 600 626 600 600 610Z"/>` +
       // Cresta larga en tubo, curvada hacia atrás (la base queda tapada por la cabeza)
-      `<path d="M606 236C540 172 460 132 392 120C360 116 346 156 372 172C446 196 520 226 592 280Z"/>` +
-      // Cabeza con pico de pato
-      `<path d="M580 300C570 250 610 216 670 214C720 212 760 236 780 262L800 340C770 352 730 360 690 356` +
-      `C630 352 590 340 580 300Z"/>` +
-      `<path d="M760 264C810 252 860 262 870 292C878 318 856 340 820 342C790 344 770 340 756 330Z"/>` +
-      linea('M768 312Q816 322 858 308') +
-      ojo(690, 270, 30, 38) +
-      cachete(640, 318, 32, 26) +
-      nariz(838, 280, 10)
+      `<path d="M626 230C560 160 470 118 396 106C362 100 342 140 368 158C446 180 526 214 604 286Z"/>` +
+      // Cabeza grande y pico de pato
+      `<path d="M560 300C548 238 600 196 668 196C724 196 764 222 782 256L806 334C772 350 728 360 684 356` +
+      `C616 350 570 340 560 300Z"/>` +
+      `<path d="M760 256C818 240 876 252 888 288C898 320 872 344 830 346C796 348 772 342 756 330Z"/>` +
+      linea('M772 314Q826 326 876 308') +
+      ojo(672, 256, 30, 38) +
+      cachete(630, 312, 32, 26) +
+      nariz(856, 278, 10)
+    );
+  }
+
+  /* ---------- Velociraptor: ágil, corriendo en dos patas, garra grande en gancho (con la punta redonda)
+     en el pie de adelante, plumitas en el brazo, en la punta de la cola y en la cabeza; carita tierna.
+     (La garra del pie de atrás no se dibuja: quedaría amontonada entre las patas.) ---------- */
+  function velociraptor() {
+    // Garra grande en forma de medialuna apoyada sobre el frente del pie (F = borde de adelante de la
+    // pata), que se curva hacia arriba y adelante con la punta redonda. Va DESPUÉS de la pata.
+    const garra = (F) => `<path d="M${F - 44} 862C${F - 44} 810 ${F - 14} 780 ${F + 32} 770` +
+      `C${F + 56} 766 ${F + 64} 788 ${F + 46} 796C${F + 14} 806 ${F - 2} 834 ${F + 4} 866Q${F - 20} 874 ${F - 44} 862Z"/>`;
+    // Pluma redondeada (hoja) que sale de (bx, by) hacia (tx, ty), de ancho w.
+    const pluma = (bx, by, tx, ty, w) => {
+      const L = Math.hypot(tx - bx, ty - by), P = local(bx, by, tx - bx, ty - by);
+      return `<path d="M${P(-w / 2, 0)}C${P(-w * 0.62, L * 0.55)} ${P(-w * 0.32, L)} ${P(0, L)}` +
+        `C${P(w * 0.32, L)} ${P(w * 0.62, L * 0.55)} ${P(w / 2, 0)}Z"/>`;
+    };
+    // Pata corriendo: igual que `pata` (tres deditos) pero con la parte de arriba corrida dx, así queda
+    // inclinada (una pata adelante y la otra atrás, a la carrera).
+    const pataCorre = (x, w, yTop, dx) => {
+      const x0 = x - 12, x1 = x + w + 12, r = R((x1 - x0) / 6), yb = PISO - r;
+      let d = `M${x + dx} ${yTop}L${x} ${yb - 40}Q${x0} ${yb - 30} ${x0} ${yb}`;
+      for (let i = 1; i <= 3; i++) d += `A${r} ${r} 0 0 0 ${R(x0 + ((x1 - x0) * i) / 3)} ${yb}`;
+      return `<path d="${d}Q${x1} ${yb - 30} ${x + w} ${yb - 40}L${x + w + dx} ${yTop}Z"/>`;
+    };
+    const cuerpo = [[270, 680], [266, 590], [350, 548], [460, 546], [570, 544], [650, 574], [668, 640],
+      [684, 716], [620, 790], [500, 800], [380, 810], [276, 760], [270, 680]];
+    const m0 = cruce(cuerpo, 3, 1, 724), m1 = cruce(cuerpo, 3, 0, 466);
+    return (
+      suelo() +
+      // Abanico de plumas en la punta de la cola y cola gruesa, derecha hacia atrás
+      pluma(166, 560, 62, 496, 64) + pluma(166, 580, 42, 586, 68) + pluma(166, 600, 64, 666, 64) +
+      `<path d="M330 600C260 588 190 566 150 552L140 616C186 630 260 662 330 690Z"/>` +
+      // Patas a la carrera (atrás del cuerpo) con pies de tres deditos; la de adelante muestra la garra
+      pataCorre(548, 96, 700, -50) + garra(644) + pataCorre(296, 100, 700, 44) +
+      // Cuello corto (la base queda tapada por el cuerpo y la punta por la cabeza)
+      `<path d="M548 650C554 590 590 490 640 420L744 434C722 500 714 590 708 670Z"/>` +
+      // Cuerpo con el muslo marcado y una mancha
+      `<path d="${d3(cuerpo)}Z"/>` +
+      linea(`M${P2(m0)}C306 652 410 640 440 696C458 730 466 770 ${P2(m1)}`) +
+      mancha(540, 626, 40, 30, 10) +
+      // Brazo con plumitas abajo
+      `<path d="M610 620C666 588 734 586 764 612C782 628 776 650 754 650C750 672 726 682 710 666` +
+      `C700 684 674 688 662 670C648 684 622 680 616 660Z"/>` +
+      // Plumitas en la cabeza (apuntan para atrás) y cabeza grande con hocico
+      pluma(630, 360, 522, 338, 62) + pluma(634, 330, 552, 268, 60) + pluma(652, 312, 608, 234, 58) +
+      `<path d="M600 400C592 332 642 288 710 286C764 284 800 306 820 334C866 336 914 348 926 378` +
+      `C936 406 914 428 874 430C832 448 768 458 716 456C650 454 606 436 600 400Z"/>` +
+      ojo(706, 358, 32, 40) +
+      cachete(652, 420, 32, 26) +
+      linea('M766 414Q816 434 866 412') +
+      nariz(900, 380, 20)
     );
   }
 
@@ -528,4 +589,5 @@
   add('anquilosaurio', 'Anquilosaurio', anquilosaurio());
   add('espinosaurio', 'Espinosaurio', espinosaurio());
   add('parasaurolofo', 'Parasaurolofo', parasaurolofo());
+  add('velociraptor', 'Velociraptor', velociraptor());
 })(window.CL);

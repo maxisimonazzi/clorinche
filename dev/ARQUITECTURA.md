@@ -216,15 +216,22 @@ Cada módulo dueño de un tipo de obra expone una función que arma la imagen fi
 Si alguna no existe todavía, la galería usa `work.thumb` como respaldo.
 Para abrir una obra: colorear → `colorear/<source>/<id>`, pizarra → `pizarra/<id>`, neón → `neon/<id>`.
 
-## 7. Verificación (obligatoria para cada agente)
+## 7. Verificación
+
+Por defecto se hace la **verificación mínima** de `CLAUDE.md` (raíz). La **verificación completa** de abajo es
+**opcional**: se ofrece al usuario al terminar la tarea y se corre sólo si acepta.
+No toques archivos de otros agentes. No borres capturas ajenas.
+
+### 7 bis. Verificación completa (sólo si el usuario la acepta)
 
 - Escribí tus scripts en `dev/<area>/` usando `dev/lib.mjs` (Edge headless con Playwright, ya instalado en `dev/`):
   `cd dev && node <area>/prueba.mjs`. La app se abre por file:// con `appUrl('ruta')`.
 - Capturas en `dev/shots/<area>/...` y **mirarlas** con la herramienta Read (ves la imagen). Probá los 3 tamaños
   mínimos: `desktop`, `tablet` y `phone` (y `phoneH`/`tabletV` si tu pantalla depende de la orientación).
-- `t.errors` tiene que quedar vacío (errores de consola y excepciones). Ignorar sólo `ERR_FILE_NOT_FOUND` de
-  `icons/*.png` mientras el agente PWA no los haya creado.
+- `t.errors` tiene que quedar vacío (errores de consola y excepciones).
 - Multitouch real: `multiStroke(page, [recorrido1, recorrido2])`, gestos a mano con `touchStart/touches`.
 - Medí fluidez donde haya animación: contá frames con `requestAnimationFrame` durante 2 s dentro de la página
   (`page.evaluate`) — headless corre sin GPU, así que tomalo como cota inferior; optimizá si da < 40 fps en desktop.
+- Además, los scripts generales que correspondan: `hoja-control.mjs`, `e2e/flujo.mjs`, `integracion/*.mjs`,
+  `pwa/pwa-test.mjs`.
 - No toques archivos de otros agentes. No borres capturas ajenas.

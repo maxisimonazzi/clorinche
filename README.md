@@ -3,7 +3,8 @@
 App web para chicos de 3 a 8 años para colorear y dibujar, pensada para tablet, celular y compu.
 Estática (HTML + CSS + JavaScript, sin backend ni dependencias), toda en español, instalable (PWA) y sin internet.
 
-- **Colorear**: 53 dibujos propios en SVG en 9 categorías + "Mis dibujos" (imágenes subidas). Balde, pincel con
+- **Colorear**: 108 dibujos propios en SVG en 10 categorías (granja, mascotas, selva, mar, dinosaurios, vehículos,
+  naturaleza, comida, fantasía y paisajes con escenas completas) + "Mis dibujos" (imágenes subidas). Balde, pincel con
   "no salirse de las líneas", goma, deshacer/rehacer, zoom (pellizco, rueda y botones), 24 colores, selector de
   cualquier color y rellenos especiales (arcoíris, degradé, brillitos, lunares). Autoguardado y "¡Terminé!".
 - **Subir imágenes**: desde archivo o cámara; se limpian a blanco y negro puro con umbral ajustable y vista previa

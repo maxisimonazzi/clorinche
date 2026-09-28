@@ -1,23 +1,27 @@
-// Desarrollo de dibujos de "mar" sin tocar la app mientras se itera: usa dev/mar/mar-dev.js (copia de
-// trabajo de app/js/drawings/mar.js) dentro de una copia de la vista previa (dev/drawings/preview.html).
+// Desarrollo de dibujos de "mar": vista previa aislada (sólo el registro y mar.js, sin los archivos de las
+// otras categorías) con herramientas para iterar.
 //   cd dev
 //   node mar/dev.mjs delfin,medusa             -> shots/mar/dev/<id>.png (líneas + coloreado) y estadísticas
 //   node mar/dev.mjs --sheet [--plain]         -> shots/mar/dev/hoja(-lineas).png (toda la categoría)
 //   node mar/dev.mjs --crop id x0 y0 x1 y1 [n] -> shots/mar/dev/crop-<n>.png (recorte ampliado, coords 0..1000)
-//   node mar/dev.mjs --zonas ids               -> tabla de zonas (área u², caja, ancho máximo inscripto)
-//   node mar/dev.mjs --app                     -> usa app/js/drawings/mar.js en vez de la copia de trabajo
+//   node mar/dev.mjs --zonas ids               -> tabla de zonas (área u², caja, ancho máximo, punto más adentro)
+//   --copia archivo.js                         -> usa esa copia de trabajo en vez de app/js/drawings/mar.js
+//                                                 (para iterar sin tocar la app mientras otros la usan)
 import fs from 'node:fs';
 import path from 'node:path';
 import { launch, fileUrl, saveDataUrl, SHOTS, DEV } from '../lib.mjs';
 
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
+const iCopia = args.indexOf('--copia');
+const copia = iCopia >= 0 ? args.splice(iCopia, 2)[1] : null;
 const pos = args.filter((a) => !a.startsWith('--'));
 const OUT = path.join(SHOTS, 'mar', 'dev');
 
 // Página: la vista previa original, pero sólo con el registro y el archivo de "mar" elegido.
 const src = fs.readFileSync(path.join(DEV, 'drawings', 'preview.html'), 'utf8');
-const marJs = flag('--app') ? '../../app/js/drawings/mar.js' : 'mar-dev.js';
+const marJs = copia ? path.relative(path.join(DEV, 'mar'), path.resolve(copia)).split(path.sep).join('/')
+  : '../../app/js/drawings/mar.js';
 const html = src
   .replace(/<script src="\.\.\/\.\.\/app\/js\/drawings\/(?!registry)[^"]+"><\/script>\r?\n?/g, '')
   .replace('<script src="../../app/js/drawings/registry.js"></script>', `$&\n<script src="${marJs}"></script>`);
@@ -82,13 +86,13 @@ if (flag('--sheet')) {
         D[p] = v;
       }
       const R = [];
-      for (let i = 0; i < n; i++) R.push({ i, area: sizes[i], x0: W, y0: H, x1: 0, y1: 0, maxD: 0, sx: 0, sy: 0 });
+      for (let i = 0; i < n; i++) R.push({ i, area: sizes[i], x0: W, y0: H, x1: 0, y1: 0, maxD: 0, sx: 0, sy: 0, px: 0, py: 0 });
       for (let p = 0; p < W * H; p++) {
         const l = label[p]; if (l < 0) continue;
         const r = R[l], x = p % W, y = (p / W) | 0;
         if (x < r.x0) r.x0 = x; if (x > r.x1) r.x1 = x; if (y < r.y0) r.y0 = y; if (y > r.y1) r.y1 = y;
         r.sx += x; r.sy += y;
-        if (D[p] / 3 > r.maxD) r.maxD = D[p] / 3;
+        if (D[p] / 3 > r.maxD) { r.maxD = D[p] / 3; r.px = x; r.py = y; }
       }
       const minArea = 0.0004 * W * H;
       return R.filter((r) => r.i !== bg).map((r) => ({
@@ -97,6 +101,7 @@ if (flag('--sheet')) {
         centro: [Math.round((r.sx / r.area) * k), Math.round((r.sy / r.area) * k)],
         caja: [r.x0, r.y0, r.x1, r.y1].map((v) => Math.round(v * k)),
         ancho: Math.round(2 * r.maxD * k),
+        interior: [Math.round(r.px * k), Math.round(r.py * k)],
       })).sort((a, b) => a.area - b.area);
     }, id);
     console.log(`\n== ${id} ==`);
@@ -127,3 +132,4 @@ if (flag('--sheet')) {
 }
 if (t.errors.length) console.log('ERRORES:\n' + t.errors.join('\n'));
 await t.close();
+fs.unlinkSync(page); // la página generada es temporal

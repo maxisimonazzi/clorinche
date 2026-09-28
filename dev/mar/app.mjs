@@ -2,8 +2,10 @@
 //   cd dev && node mar/app.mjs
 // Capturas en dev/shots/mar/.
 import { launch, appUrl, shot, tap, settle } from '../lib.mjs';
+import { TOQUES as NUEVOS } from './toques.mjs';
 
-const IDS = ['ballena', 'pulpo', 'tiburon', 'cangrejo', 'estrella-de-mar', 'caballito-de-mar'];
+const IDS = ['ballena', 'pulpo', 'tiburon', 'cangrejo', 'estrella-de-mar', 'caballito-de-mar',
+  'delfin', 'medusa', 'foca', 'pez-payaso', 'tortuga-marina'];
 // Puntos para tocar con el balde (coordenadas del lienzo 1000 × 1000) en cada dibujo.
 const TOQUES = {
   ballena: [[450, 450], [300, 740], [396, 200], [880, 300]],
@@ -12,6 +14,8 @@ const TOQUES = {
   cangrejo: [[500, 520], [160, 260], [420, 212], [150, 560]],
   'estrella-de-mar': [[500, 360], [500, 150], [150, 420], [720, 830]],
   'caballito-de-mar': [[600, 500], [395, 620], [712, 895], [400, 345]],
+  // Dibujos nuevos: los mismos toques que mar/nuevos.mjs (sin el color).
+  ...Object.fromEntries(Object.entries(NUEVOS).map(([id, pts]) => [id, pts.map(([x, y]) => [x, y])])),
 };
 const errores = [];
 
@@ -38,7 +42,7 @@ for (const size of ['desktop', 'tablet', 'phone', 'phoneH']) {
   await settle(page, 900);
   await shot(page, `mar/${size}-catalogo`);
 
-  const lista = size === 'desktop' ? IDS : size === 'tablet' ? ['pulpo', 'caballito-de-mar'] : ['cangrejo'];
+  const lista = size === 'desktop' ? IDS : size === 'tablet' ? ['pulpo', 'caballito-de-mar', 'medusa'] : ['cangrejo', 'tortuga-marina'];
   for (const id of lista) {
     await page.goto(appUrl('colorear/' + id));
     await settle(page, 1500);
@@ -61,7 +65,11 @@ for (const size of ['desktop', 'tablet', 'phone', 'phoneH']) {
     } else errores.push(`${size}/${id}: no encontré el lienzo`);
     await shot(page, `mar/${size}-colorear-${id}`);
   }
-  if (t.errors.length) console.log(size, 'errores de consola:\n  ' + t.errors.join('\n  '));
+  // Se ignoran errores de OTROS archivos de dibujos (otros agentes los editan en paralelo) y los íconos PWA.
+  const propios = t.errors.filter((e) => !/js\/drawings\/(?!mar\.js)[a-z-]+\.js/.test(e) && !/icons\/.*\.png/.test(e));
+  console.log(`${size}: errores de consola: ${propios.length}` + (propios.length ? '\n  ' + propios.join('\n  ') : ''));
+  errores.push(...propios.map((e) => `${size}: ${e}`));
   await t.close();
 }
+// El pulpo original pesa ~8,7 KB (ya era así antes de agregar los dibujos nuevos): se avisa, no es falla nueva.
 console.log(errores.length ? 'FALLAS:\n' + errores.join('\n') : 'OK');

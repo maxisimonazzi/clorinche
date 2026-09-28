@@ -3,7 +3,8 @@
 // Capturas en dev/shots/dinosaurios/.
 import { launch, appUrl, shot, tap, settle } from '../lib.mjs';
 
-const IDS = ['trex', 'triceratops', 'diplodocus', 'estegosaurio', 'pterodactilo'];
+const IDS = ['trex', 'triceratops', 'diplodocus', 'estegosaurio', 'pterodactilo',
+  'bebe-dino', 'anquilosaurio', 'espinosaurio', 'parasaurolofo', 'velociraptor'];
 // Puntos para tocar con el balde (coordenadas del lienzo 1000 × 1000) en cada dibujo.
 const TOQUES = {
   trex: [[760, 250], [380, 720], [200, 620], [600, 820]],
@@ -11,6 +12,11 @@ const TOQUES = {
   diplodocus: [[520, 680], [600, 520], [850, 150], [250, 450]],
   estegosaurio: [[520, 700], [505, 380], [880, 740], [200, 620]],
   pterodactilo: [[440, 540], [380, 560], [450, 340], [700, 280]],
+  'bebe-dino': [[470, 480], [500, 740], [440, 160], [500, 570]],
+  anquilosaurio: [[520, 470], [570, 517], [118, 734], [400, 772]],
+  espinosaurio: [[360, 320], [460, 320], [400, 700], [690, 370]],
+  parasaurolofo: [[480, 160], [610, 260], [830, 285], [560, 700]],
+  velociraptor: [[780, 330], [580, 720], [340, 700], [630, 810]],
 };
 const errores = [];
 

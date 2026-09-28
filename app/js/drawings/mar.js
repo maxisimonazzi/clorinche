@@ -1,8 +1,8 @@
 /* Colorinche — js/drawings/mar.js
-   Dibujos para colorear de la categoría "Mar": ballena, pulpo, tiburón, cangrejo, estrella de mar
-   y caballito de mar. Lienzo 1000 × 1000, contorno 16, detalles internos 10–12
-   (ver dev/ARQUITECTURA.md, sección 5). El orden importa: lo que va adelante se dibuja después
-   y su relleno blanco tapa las líneas de atrás. */
+   Dibujos para colorear de la categoría "Mar": ballena, pulpo, tiburón, cangrejo, estrella de mar,
+   caballito de mar, delfín, medusa, foca, pez payaso y tortuga marina. Lienzo 1000 × 1000,
+   contorno 16, detalles internos 10–14 (ver dev/ARQUITECTURA.md, sección 5). El orden importa:
+   lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */
 'use strict';
 (function (CL) {
   const add = (id, nombre, svg) => CL.drawings.add('mar', id, nombre, svg);
@@ -558,5 +558,294 @@
       ${burbuja(280, 92, 38)}
       ${burbuja(200, 560, 38)}
     </g>`);
+  }
+
+  /* ---------- Piezas de los dibujos nuevos (delfín, medusa, foca, pez payaso, tortuga marina) ---------- */
+
+  // Cinta cerrada con punta redonda (tentáculos, dedos de anémona): contorno suave alrededor del
+  // recorrido `ctrl`, con ancho anchos[i] en cada punto de control. `tol` = tolerancia al simplificar.
+  const cinta = (ctrl, anchos, tol = 1) => {
+    const t = tira(ctrl, anchos, 8), n = t.eje.length, e = t.eje[n - 1], i = t.izq[n - 1];
+    const a0 = Math.atan2(i[1] - e[1], i[0] - e[0]), h = t.w(n - 1) / 2, punta = [];
+    for (let q = 1; q < 8; q++) punta.push([e[0] + h * Math.cos(a0 - (q * Math.PI) / 8), e[1] + h * Math.sin(a0 - (q * Math.PI) / 8)]);
+    return suaveL(simplificar(parejo([...t.izq, ...punta, ...t.der.slice().reverse(), t.izq[0]], 6).slice(0, -1), tol), true);
+  };
+
+  // Puntos de una onda (olas) de x0 a x1 alrededor de la altura y: n ondas, 8 puntos por onda; empieza y
+  // termina en una cresta (fase 0) o en un valle (fase π).
+  const onda = (x0, x1, y, amp, n, fase = 0) => {
+    const pts = [];
+    for (let k = 0; k <= n * 8; k++) pts.push([x0 + ((x1 - x0) * k) / (n * 8), y - amp * Math.cos((k * Math.PI) / 4 + fase)]);
+    return pts;
+  };
+
+  /* ---------- Delfín ---------- */
+  {
+    // Saltando sobre el mar: cuerpo arqueado con hocico largo, aleta dorsal, aleta del costado, cola de
+    // dos lóbulos y panza clara (una raya la separa del lomo). Salpica gotas.
+    // Gota de agua (punta arriba, panza redonda de radio r), girada `ang` grados alrededor de su centro.
+    const gota = (x, y, r, ang = 0) => {
+      const q = (u, v) => P(local([x, y], ang - 90, u, v));
+      return `<path d="M${q(r * 2.1, 0)}C${q(r * 1.3, r * 0.5)} ${q(r * 0.9, r)} ${q(0, r)}` +
+        `A${r} ${r} 0 0 1 ${q(0, -r)}C${q(r * 0.9, -r)} ${q(r * 1.3, -r * 0.5)} ${q(r * 2.1, 0)}Z" stroke-width="12"/>`;
+    };
+    // El cuerpo se diseña derecho (u: a lo largo, desde la punta del hocico; v: hacia el lomo) y se dobla
+    // sobre un lomo curvo que sale del hocico con rumbo R0 y gira T grados hasta U1 (arco hacia abajo) y
+    // T2 grados más hasta el pedúnculo UC (contracurva: la cola queda levantada). De ahí en adelante,
+    // derecho: la cola no se deforma. S = escala.
+    const S = 0.96, R0 = -10, T = 56, T2 = -40, U1 = 480, UC = 740, PASO = 4;
+    const giro = (u) => (u < U1 * S ? T / (U1 * S) : u < UC * S ? T2 / ((UC - U1) * S) : 0);
+    const lomoPts = [[0, 0]], rumbo = [R0 * RAD];
+    for (let u = 0; u < 1000; u += PASO) {
+      const a0 = rumbo[rumbo.length - 1], a1 = a0 + giro(u + PASO / 2) * RAD * PASO, am = (a0 + a1) / 2;
+      const p = lomoPts[lomoPts.length - 1];
+      lomoPts.push([p[0] + PASO * Math.cos(am), p[1] + PASO * Math.sin(am)]);
+      rumbo.push(a1);
+    }
+    let D = [0, 0]; // corrimiento para encuadrar
+    const curva = ([u, v]) => {
+      u *= S; v *= S;
+      const i = Math.min(lomoPts.length - 2, Math.floor(u / PASO)), f = u / PASO - i;
+      const a = rumbo[i] + (rumbo[i + 1] - rumbo[i]) * f;
+      const x = lomoPts[i][0] + (lomoPts[i + 1][0] - lomoPts[i][0]) * f, y = lomoPts[i][1] + (lomoPts[i + 1][1] - lomoPts[i][1]) * f;
+      return [x + v * Math.sin(a) + D[0], y - v * Math.cos(a) + D[1]];
+    };
+    const cur = (pts) => pts.map(curva);
+    // Aletas rígidas: van en un sistema local pegado al cuerpo en (u, v), con `a` a lo largo del cuerpo
+    // (hacia la cola) y `b` hacia el lomo; así la curva del cuerpo no las deforma.
+    const rigido = (u, v, pts) => {
+      const o = curva([u, v]), f = curva([u + 10, v]), l = Math.hypot(f[0] - o[0], f[1] - o[1]);
+      const t = [(f[0] - o[0]) / l, (f[1] - o[1]) / l], n = [t[1], -t[0]];
+      return pts.map(([a, b]) => [o[0] + (a * t[0] + b * n[0]) * S, o[1] + (a * t[1] + b * n[1]) * S]);
+    };
+    const lomo = [[52, 52], [96, 56], [124, 64], [142, 90], [168, 140], [212, 180], [272, 200], [340, 200],
+      [430, 184], [520, 152], [605, 110], [680, 72], [735, 50], [780, 42]];
+    const panza = [[780, -42], [735, -50], [680, -76], [600, -118], [515, -152], [425, -172], [340, -174],
+      [266, -162], [206, -134], [160, -98], [134, -66], [96, -54], [52, -52]];
+    const sil = [...lomo, [800, 0], ...panza, [15, -37], [0, 0], [15, 37]];
+    const lobulo = [[752, 36], [790, 58], [830, 86], [866, 114], [894, 136], [916, 144], [930, 128], [924, 104],
+      [902, 74], [882, 42]];
+    const colaP = [...lobulo, [868, 0], ...lobulo.slice().reverse().map(([u, v]) => [u, -v]), [690, 0]];
+    const dorsalL = [[-90, -40], [-70, 40], [-30, 108], [24, 156], [74, 178], [100, 170], [104, 146], [86, 108],
+      [74, 64], [70, 20], [72, -40]];
+    // Aleta del costado (atrás del cuerpo): asoma debajo de la panza con la punta hacia atrás.
+    const pectL = [[-40, 20], [-34, -40], [-12, -92], [26, -134], [72, -162], [106, -172], [124, -160], [120, -128],
+      [102, -86], [80, -40], [70, 20]];
+    const formas = () => [cur(sil), cur(colaP), rigido(470, 150, dorsalL), rigido(300, -120, pectL)];
+    // Encuadre: centrado en x = 500 y con el borde de arriba en y = 60.
+    const todos = formas().flat(), xs = todos.map((p) => p[0]), ys = todos.map((p) => p[1]);
+    D = [500 - (Math.min(...xs) + Math.max(...xs)) / 2, 60 - Math.min(...ys)];
+    const [cuerpo, cola, dorsal, pectoral] = formas().map((pts) => suave(pts, true));
+    // Raya de la panza: de un punto del contorno (garganta) a otro (cerca de la cola).
+    const rayaPanza = suave(cur([[160, -98], [210, -80], [300, -76], [400, -82], [500, -80], [590, -64], [680, -76]]));
+    const boca = suave(cur([[58, -6], [120, -8], [180, -14], [226, -8], [248, 14]]));
+    const [ex, ey] = curva([262, 82]), [kx, ky] = curva([318, 0]);
+    // Mar: franja de agua con el borde de arriba ondulado y puntas redondas; una raya ondulada adentro la
+    // divide en agua clara (arriba) y agua honda (abajo).
+    const yA = 794, yM = 872;
+    const mar = suave(onda(110, 890, yA, 24, 4)) + `C926 ${yA - 24} 952 ${yM - 50} 952 ${yM}` +
+      `C952 ${yM + 44} 920 944 860 944H140C80 944 48 ${yM + 44} 48 ${yM}C48 ${yM - 50} 74 ${yA - 24} 110 ${yA - 24}Z`;
+    const hondo = `M48 ${yM}` + suave(onda(100, 900, yM, 16, 4, Math.PI)).replace(/^M[^C]*/, `L100 ${yM + 16}`) + `L952 ${yM}`;
+    add('delfin', 'Delfín', `
+      <path d="${mar}"/>
+      ${linea(hondo, 14)}
+      <path d="${cola}"/>
+      <path d="${dorsal}"/>
+      <path d="${pectoral}"/>
+      <path d="${cuerpo}"/>
+      ${linea(rayaPanza)}
+      ${linea(boca)}
+      ${ojo(R(ex), R(ey), 34, 42)}
+      ${cachete(R(kx), R(ky), 40, 30)}
+      ${gota(636, 712, 31, -32)}${gota(728, 684, 33, 0)}${gota(820, 712, 31, 32)}
+      ${gota(118, 556, 31, -10)}${gota(200, 670, 31, 12)}
+    `);
+  }
+
+  /* ---------- Medusa ---------- */
+  {
+    // Sombrero redondo con carita y puntitos, pollerita de festones y cinco tentáculos largos ondulados.
+    // Tentáculo (atrás del sombrero): cinta que baja ondulando, se abre hacia afuera y se afina de a poco.
+    // Todos ondulan igual (como mecidos por la misma corriente), así no se tocan.
+    const tentaculo = (x0, largo, abre) => {
+      const ctrl = [], anchos = [], n = 8;
+      for (let k = 0; k <= n; k++) {
+        const f = k / n;
+        ctrl.push([x0 + abre * f * f + 34 * Math.sin((f * largo) / 75 - 0.5), 390 + largo * f]);
+        anchos.push(74 - 18 * f);
+      }
+      return `<path d="${cinta(ctrl, anchos)}"/>`;
+    };
+    // Sombrero: cúpula con el borde de abajo en festones.
+    const L = 188, Rr = 812, yb = 456, nf = 6, paso = (Rr - L) / nf;
+    const lado = [[L, yb], [L - 12, 250], [320, 82], [500, 82]]; // costado izquierdo (cúbica)
+    let borde = '';
+    for (let k = 0; k < nf; k++) {
+      const x1 = Rr - k * paso, x0 = x1 - paso;
+      borde += `C${R(x1 - 4)} ${yb + 54} ${R(x0 + 4)} ${yb + 54} ${R(x0)} ${yb}`;
+    }
+    const sombrero = `M${L} ${yb}C${L - 12} 250 320 82 500 82C680 82 ${Rr + 12} 250 ${Rr} ${yb}${borde}Z`;
+    // Raya que separa la pollerita: sale de un punto exacto del costado (a la altura 384) y llega al espejo.
+    let a = 0, b = 0.5;
+    for (let k = 0; k < 30; k++) { const m = (a + b) / 2; if (bz(...lado, m)[1] > 384) a = m; else b = m; }
+    const [bx, by] = bz(...lado, a);
+    const faja = `M${P([bx, by])}C${R(bx + 110)} ${R(by + 36)} ${R(1000 - bx - 110)} ${R(by + 36)} ${P([1000 - bx, by])}`;
+    add('medusa', 'Medusa', `
+      ${tentaculo(292, 400, -70)}${tentaculo(396, 480, -30)}${tentaculo(500, 530, 0)}${tentaculo(604, 480, 30)}${tentaculo(708, 400, 70)}
+      <path d="${sombrero}"/>
+      ${linea(faja)}
+      ${circulo(366, 186, 34)}${circulo(500, 150, 32)}${circulo(634, 186, 34)}
+      ${ojo(418, 284, 32, 40)}
+      ${ojo(582, 284, 32, 40)}
+      ${cachete(350, 346, 40, 30)}
+      ${cachete(650, 346, 40, 30)}
+      ${linea('M460 340Q500 382 540 340')}
+      ${burbuja(110, 164, 42)}${burbuja(196, 84, 38)}${burbuja(880, 250, 38)}
+    `);
+  }
+
+  /* ---------- Foca ---------- */
+  {
+    // De perfil mirando a la derecha, acostada sobre un témpano que flota: pecho levantado, cabeza
+    // inclinada hacia arriba con bigotes y una pelota a gajos en equilibrio sobre la nariz. Estrellitas.
+    // (Sin cachete: en la cara de perfil mirando arriba, cualquier óvalo se lee como una boca abierta.)
+    const estrella = (cx, cy, r, rot = 0) => {
+      let d = '';
+      for (let k = 0; k < 10; k++) {
+        const a = (-90 + rot + k * 36) * RAD, q = k % 2 ? r * 0.5 : r;
+        d += (k ? 'L' : 'M') + P([cx + q * Math.cos(a), cy + q * Math.sin(a)]);
+      }
+      return `<path d="${d}Z" stroke-width="14"/>`;
+    };
+    // Cabeza: cara(u, v), con u hacia la punta del hocico y v hacia la frente (centro H, giro AM, escala K).
+    const H = [490, 486], AM = -52, K = 1.12;
+    const cara = (u, v) => local(H, AM, u * K, -v * K);
+    const nuca = [[-112, 98], [-68, 128], [-18, 142], [34, 138], [80, 118], [118, 92], [152, 72], [184, 52],
+      [204, 22], [204, -14], [192, -48], [168, -80], [134, -104], [96, -124], [56, -146], [20, -166]].map(([u, v]) => cara(u, v));
+    const cuerpo = suave([...nuca, [684, 640], [702, 704], [680, 758], [600, 784], [440, 788], [280, 786],
+      [180, 776], [132, 752], [148, 722], [210, 696], [262, 662], [298, 612], [314, 560]], true);
+    // Aletas de atrás levantadas en V y aleta de adelante apoyada en el hielo.
+    const cola = suave([[200, 716], [162, 680], [116, 644], [84, 614], [76, 586], [98, 576], [140, 600],
+      [180, 630], [176, 580], [184, 538], [206, 528], [226, 552], [240, 618], [258, 694], [262, 740]], true);
+    const aleta = suave([[600, 698], [660, 712], [716, 734], [762, 758], [772, 784], [742, 796], [666, 792],
+      [600, 776], [570, 746]], true);
+    const nariz = cara(194, 6).map(R);
+    // Pelota apoyada en la nariz: tres gajos (dos rayas curvas) y un botón arriba.
+    const B = [nariz[0] - 4, nariz[1] - 102], rb = 96;
+    const gajo = (k) => linea(`M${B[0]} ${B[1] - rb + 24}C${B[0] + k} ${B[1] - rb + 50} ${B[0] + k} ${B[1] + rb - 40} ${B[0]} ${B[1] + rb}`);
+    const bigote = (u, v, a, l) => { const p0 = cara(u, v); return linea(`M${P(p0)}L${P(local(p0, a, l, 0))}`, 10); };
+    const [ox, oy] = cara(64, 60);
+    const sonrisa = `M${P(cara(178, -34))}C${P(cara(160, -48))} ${P(cara(128, -48))} ${P(cara(116, -24))}`;
+    // Témpano: cara de arriba (clara) y frente partido en bloques; agua con olitas adelante.
+    const hielo = 'M104 796C92 760 140 738 206 736H794C860 738 908 760 896 796L878 896H122Z';
+    const agua = suave(onda(110, 890, 884, 14, 5)) + 'C930 870 952 896 952 916C952 942 924 954 880 954H120C76 954 48 942 48 916C48 896 70 870 110 870Z';
+    add('foca', 'Foca', `
+      <path d="${hielo}"/>
+      ${linea('M106 804C230 832 770 832 894 804')}
+      ${linea('M330 826L316 900')}${linea('M660 826L676 900')}
+      <path d="${agua}"/>
+      <path d="${cola}"/>
+      <circle cx="${B[0]}" cy="${B[1]}" r="${rb}"/>
+      ${gajo(-44)}${gajo(44)}
+      ${circulo(B[0], B[1] - rb + 16, 31)}
+      <path d="${cuerpo}"/>
+      <path d="${aleta}"/>
+      <ellipse cx="${nariz[0]}" cy="${nariz[1]}" rx="28" ry="20" transform="rotate(${AM} ${nariz[0]} ${nariz[1]})" fill="#000"/>
+      ${bigote(184, -52, -24, 100)}${bigote(173, -66, 6, 104)}${bigote(159, -82, 36, 94)}
+      ${ojo(R(ox), R(oy), 34, 42)}
+      ${linea(sonrisa)}
+      ${estrella(160, 200, 64, -12)}${estrella(336, 112, 60, 12)}${estrella(872, 236, 62, 8)}
+    `);
+  }
+
+  /* ---------- Pez payaso ---------- */
+  {
+    // Mirando a la izquierda, delante de una anémona. Cuerpo ovalado con tres franjas anchas bordeadas:
+    // detrás del ojo, en el medio y en el pedúnculo (que asoma detrás del óvalo, antes de la cola).
+    // Aletas redondeadas.
+    const C = [440, 340], rx = 244, ry = 180;
+    const enY = (x, s) => C[1] + s * ry * Math.sqrt(Math.max(0, 1 - ((x - C[0]) / rx) ** 2));
+    // Raya de una franja: de arriba a abajo del cuerpo (termina justo en el contorno), panzona hacia la cabeza.
+    const raya = (x, panza) => {
+      const y0 = enY(x, -1), y1 = enY(x, 1);
+      return linea(`M${R(x)} ${R(y0)}C${R(x - panza)} ${R(y0 + (y1 - y0) * 0.3)} ${R(x - panza)} ${R(y0 + (y1 - y0) * 0.7)} ${R(x)} ${R(y1)}`, 14);
+    };
+    // Anémona: dedos gordos y ondulados, apretados (cada uno tapa el borde del de atrás: una sola raya entre
+    // vecinos), que salen de una loma de arena. Los del medio suben detrás del pez.
+    const dedo = ([x0, y0], [x1, y1], w0, w1) => {
+      const ctrl = [], anchos = [], n = 6;
+      for (let k = 0; k <= n; k++) {
+        const f = k / n;
+        ctrl.push([x0 + (x1 - x0) * f + 26 * Math.sin(f * Math.PI * 1.6), y0 + (y1 - y0) * f]);
+        anchos.push(w0 + (w1 - w0) * f);
+      }
+      return `<path d="${cinta(ctrl, anchos, 3)}"/>`;
+    };
+    // De afuera hacia adentro (los de adentro quedan adelante).
+    const anemona = [
+      dedo([212, 900], [118, 664], 96, 74), dedo([788, 900], [882, 674], 96, 74),
+      dedo([270, 900], [216, 556], 98, 76), dedo([730, 900], [780, 566], 98, 76),
+      dedo([344, 900], [320, 460], 100, 78), dedo([656, 900], [672, 470], 100, 78),
+      dedo([430, 900], [420, 440], 100, 80), dedo([570, 900], [580, 440], 100, 80),
+      dedo([500, 900], [500, 430], 100, 80),
+    ].join('');
+    add('pez-payaso', 'Pez payaso', `
+      ${anemona}
+      <path d="M110 950C110 880 250 836 500 836C750 836 890 880 890 950Z"/>
+      <path d="M740 340C790 262 870 214 910 246C944 280 944 400 910 434C870 466 790 418 740 340Z"/>
+      <path d="M600 270C660 262 740 262 768 282C790 304 790 376 768 398C740 418 660 418 600 410Z"/>
+      <path d="M296 182C290 104 366 70 426 92C462 106 478 136 478 160Z"/>
+      <path d="M456 156C482 92 570 86 622 128C650 152 656 188 648 210Z"/>
+      <path d="M300 486C298 556 346 594 392 578C410 562 410 530 400 506Z"/>
+      <path d="M548 504C552 568 610 592 648 564C664 546 658 514 638 490Z"/>
+      <ellipse cx="${C[0]}" cy="${C[1]}" rx="${rx}" ry="${ry}"/>
+      ${raya(390, 34)}${raya(452, 34)}${raya(552, 30)}${raya(614, 26)}
+      ${ojo(282, 290, 36, 44)}
+      ${cachete(296, 398, 38, 28)}
+      ${linea('M214 350Q222 376 242 372')}
+      ${burbuja(108, 196, 42)}${burbuja(176, 100, 38)}${burbuja(876, 116, 40)}
+    `);
+  }
+
+  /* ---------- Tortuga marina ---------- */
+  {
+    // Vista desde arriba (bien distinta de la tortuga de tierra de "mascotas", que está de perfil):
+    // caparazón con placas grandes (una hexagonal al medio y seis alrededor), aletas de adelante anchas
+    // como remos, aletas de atrás chicas, colita y cabeza grande de frente. Se dibuja derecha (mirando
+    // arriba) y el grupo se gira: nada en diagonal hacia arriba, entre burbujas.
+    const S = [500, 560], rx = 214, ry = 250;
+    // Aleta: contorno suave en un sistema local (u a lo largo de la aleta, v hacia adelante) con raíz en o;
+    // `espejo` la refleja para el lado derecho.
+    const aleta = (o, ang, pts, espejo) => suave(pts.map(([u, v]) => {
+      const p = local(o, ang, u, -v);
+      return espejo ? [1000 - p[0], p[1]] : p;
+    }), true);
+    const remo = [[-10, -50], [60, -56], [130, -68], [192, -76], [240, -66], [266, -36], [268, 2], [250, 40],
+      [210, 70], [150, 88], [80, 80], [20, 62], [-10, 50]];
+    const patita = [[-10, -56], [60, -64], [124, -50], [156, -14], [150, 22], [110, 44], [50, 56], [-10, 56]];
+    const aletas = [false, true].map((e) =>
+      `<path d="${aleta([344, 450], 172, remo, e)}"/><path d="${aleta([372, 704], 122, patita, e)}"/>`).join('');
+    // Placas: hexágono al medio (punta arriba) y rayas desde cada vértice hasta el borde del caparazón.
+    const H = [500, 580], rh = 104;
+    const vert = [30, 90, 150, 210, 270, 330].map((a) => [H[0] + rh * 1.2 * Math.cos(a * RAD), H[1] + rh * Math.sin(a * RAD)]);
+    const alBorde = ([x, y]) => {
+      const ex = x - S[0], ey = y - S[1], t = 1 / Math.hypot(ex / rx, ey / ry);
+      return [S[0] + ex * t, S[1] + ey * t];
+    };
+    add('tortuga-marina', 'Tortuga marina', `<g transform="translate(20 20) rotate(-16 500 520)">
+      ${aletas}
+      <path d="M456 770C462 846 484 896 500 906C516 896 538 846 544 770Z"/>
+      <ellipse cx="${S[0]}" cy="${S[1]}" rx="${rx}" ry="${ry}"/>
+      <path d="M${vert.map(P).join('L')}Z" stroke-width="14"/>
+      ${vert.map((v) => linea(`M${P(v)}L${P(alBorde(v))}`, 14)).join('')}
+      <ellipse cx="500" cy="220" rx="160" ry="140"/>
+      ${ojo(436, 190, 32, 40)}
+      ${ojo(564, 190, 32, 40)}
+      ${cachete(420, 280, 36, 28)}
+      ${cachete(580, 280, 36, 28)}
+      ${linea('M480 262Q500 288 520 262')}
+    </g>
+      ${burbuja(116, 170, 44)}${burbuja(206, 88, 38)}${burbuja(862, 120, 40)}
+    `);
   }
 })(window.CL);

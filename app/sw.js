@@ -25,7 +25,7 @@
 'use strict';
 
 // <build-sw> (generado por dev/build-sw.mjs — no editar a mano)
-const VERSION = 'ac468210056d';
+const VERSION = 'f42e62bf65f5';
 const FILES = [
   'index.html',
   'css/colorear.css',
