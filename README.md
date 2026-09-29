@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="app/icons/icon.svg" alt="Logo de Colorinche" width="160">
-  <h1>🎨 Colorinche 🖍️</h1>
+  <img src="app/icons/icon.svg" alt="Logo de Colorines" width="160">
+  <h1>🎨 Colorines 🖍️</h1>
   <h3>Una app para colorear y dibujar para chicos de 3 a 8 años</h3>
 
   [![Estado](https://img.shields.io/badge/Estado-Estable-2ecc71?style=for-the-badge&logoSize=auto)]()
@@ -13,12 +13,12 @@
 </div>
 
 <p align="center">
-  <img src="docs/capturas/inicio.png" alt="Pantalla de inicio de Colorinche" width="720">
+  <img src="docs/capturas/inicio.png" alt="Pantalla de inicio de Colorines" width="720">
 </p>
 
 ## 📄 Descripción
 
-**Colorinche** es una app web para que los más chicos coloreen, dibujen y jueguen con colores desde una tablet,
+**Colorines** es una app web para que los más chicos coloreen, dibujen y jueguen con colores desde una tablet,
 un celular o la compu. Está toda en español, se puede instalar como app (PWA) y, una vez abierta, **anda sin
 internet**.
 
@@ -44,9 +44,13 @@ dispositivo.
 
 - **108 dibujos propios** en SVG, en 10 categorías (granja, mascotas, selva, mar, dinosaurios, vehículos,
   naturaleza, comida, fantasía y paisajes) + **Mis dibujos** con las imágenes subidas.
-- Balde de pintura, pincel que **no se sale de las líneas**, goma, deshacer y rehacer.
+- Balde de pintura, pincel que **no se sale de las líneas**, goma, deshacer, rehacer y **borrar todo** para
+  empezar de nuevo (manteniendo apretado).
 - Zoom con pellizco, rueda del mouse o botones.
-- 24 colores, selector de cualquier color y **rellenos especiales**: arcoíris, degradé, brillitos y lunares.
+- 27 colores, selector de cualquier color y **rellenos especiales**: arcoíris, degradé, brillitos, lunares,
+  estrellas, corazones, rompecabezas, ondas y escamas.
+- **Segundo color** para los rellenos: manteniendo apretado un color (o con clic derecho) se elige el color de
+  los lunares, las estrellas, la otra punta del degradé, etc.
 - Autoguardado y botón **¡Terminé!** para guardar la obra.
 
 </details>
@@ -112,4 +116,4 @@ dispositivo.
 Distribuido bajo la [licencia MIT](LICENSE). Podés usarlo, modificarlo y compartirlo libremente, siempre que
 mantengas el aviso de copyright y des crédito al autor original:
 
-> Colorinche — creado por **Maximiliano Simonazzi** ([github.com/maxisimonazzi](https://github.com/maxisimonazzi))
+> Colorines — creado por **Maximiliano Simonazzi** ([github.com/maxisimonazzi](https://github.com/maxisimonazzi))

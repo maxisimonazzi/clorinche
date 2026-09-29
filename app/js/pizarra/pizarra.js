@@ -1,4 +1,4 @@
-/* Colorinche — pizarra mágica (dibujo libre). Rutas: #pizarra y #pizarra/<workId>.
+/* Colorines — pizarra mágica (dibujo libre). Rutas: #pizarra y #pizarra/<workId>.
 
    Capas dentro del tablero (todas del mismo tamaño, backing store = documento × res):
      canvas.pz-bg     fondo elegido (CL.pizarra.backgrounds)

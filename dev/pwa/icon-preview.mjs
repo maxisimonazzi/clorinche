@@ -1,4 +1,4 @@
-// Colorinche — vista previa del ícono a varios tamaños y fondos (para iterar el diseño).
+// Colorines — vista previa del ícono a varios tamaños y fondos (para iterar el diseño).
 // Uso: cd dev && node pwa/icon-preview.mjs [archivo.svg]
 //   Genera dev/shots/pwa/icon-preview.png (tamaños 32..512 sobre fondo claro, oscuro y de "pantalla de inicio").
 import fs from 'node:fs';

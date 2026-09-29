@@ -1,4 +1,4 @@
-/* Colorinche — dibujos para colorear: categoría "Mascotas".
+/* Colorines — dibujos para colorear: categoría "Mascotas".
    Lienzo 1000×1000, contorno 16 (el <g> con el estilo lo pone registry.js).
    Orden de cada dibujo: lo de atrás primero; lo que va adelante tapa con su relleno blanco. */
 'use strict';

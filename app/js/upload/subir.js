@@ -1,4 +1,4 @@
-/* Colorinche — Subir imágenes (ruta 'subir').
+/* Colorines — Subir imágenes (ruta 'subir').
 
    Pasos:
    1. Elegir: dos botones enormes (archivo / cámara). También se puede soltar un archivo o pegarlo.

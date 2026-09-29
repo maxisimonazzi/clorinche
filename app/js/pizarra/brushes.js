@@ -1,4 +1,4 @@
-/* Colorinche — pinceles de la pizarra mágica (CL.brushes).
+/* Colorines — pinceles de la pizarra mágica (CL.brushes).
 
    Cada pincel dibuja en unidades de "documento" (px CSS del lienzo). Los contextos que recibe ya tienen
    la transformación a píxeles reales: ctx.setTransform(res, 0, 0, res, 0, 0).

@@ -1,4 +1,4 @@
-# Colorinche: cómo abrirla, publicarla e instalarla
+# Colorines: cómo abrirla, publicarla e instalarla
 
 ## 0. Antes de publicar (siempre)
 
@@ -22,14 +22,14 @@ copia guardada en el dispositivo). La prueba `--strict` falla si `sw.js` quedó 
   instalación**: no se puede "Instalar app" y necesita la carpeta en la compu.
   Ojo: lo guardado por `file://` y lo guardado por `http://localhost` son datos **separados**.
 - **Para instalarla en la compu**: `cd dev && node serve.mjs` y abrir `http://localhost:8765/` en Edge o
-  Chrome → ícono "Instalar" en la barra de direcciones (o menú ⋯ → Aplicaciones → Instalar Colorinche).
+  Chrome → ícono "Instalar" en la barra de direcciones (o menú ⋯ → Aplicaciones → Instalar Colorines).
   Después abre sola desde el menú Inicio, sin servidor y sin internet.
-- **Mejor dejá el puerto 8765 para Colorinche** (la app instalada vive en esa dirección). Para otro proyecto
+- **Mejor dejá el puerto 8765 para Colorines** (la app instalada vive en esa dirección). Para otro proyecto
   usá otro puerto (p. ej. `node serve.mjs 9000` o el que use tu herramienta).
   Si igual servís otra cosa en el 8765: la **primera** vez que abras `http://localhost:8765/` vas a ver
-  Colorinche una última vez (sale de la copia guardada); en ese momento Colorinche nota que en el servidor ya
+  Colorines una última vez (sale de la copia guardada); en ese momento Colorines nota que en el servidor ya
   no está y se da de baja sola. Desde la apertura siguiente (recargá) se ve el otro proyecto. Las obras y
-  fotos guardadas no se borran: si más adelante volvés a servir Colorinche ahí, se reinstala y siguen estando.
+  fotos guardadas no se borran: si más adelante volvés a servir Colorines ahí, se reinstala y siguen estando.
   Mientras tanto, la app instalada desde el 8765 no abre sin el servidor.
   Si hiciera falta liberarlo a mano: `edge://serviceworker-internals` (en Chrome
   `chrome://serviceworker-internals`) → buscar `http://localhost:8765/` → **Unregister** (o F12 →
@@ -43,15 +43,15 @@ Para instalarse necesita estar publicada en **https**. Dos opciones gratuitas:
 ### Opción 1 (recomendada): GitHub Pages
 
 1. Crear una cuenta gratis en github.com e iniciar sesión.
-2. **+** → *New repository*. Nombre, por ejemplo, `colorinche`, **Public** (en el plan gratis Pages exige
+2. **+** → *New repository*. Nombre, por ejemplo, `colorines`, **Public** (en el plan gratis Pages exige
    repositorio público). Usá un repositorio de *proyecto* como este y **no** el especial
-   `<usuario>.github.io`: así la app queda en su propia carpeta (`https://<usuario>.github.io/colorinche/`)
+   `<usuario>.github.io`: así la app queda en su propia carpeta (`https://<usuario>.github.io/colorines/`)
    y no se mezcla con otras páginas tuyas.
 3. En el repositorio: *Add file* → *Upload files* y arrastrar **el contenido** de `app/` (el `index.html` y las
    carpetas `css`, `js`, `icons`, `fonts`, más `manifest.webmanifest` y `sw.js`), no la carpeta `app` en sí:
    `index.html` tiene que quedar en la raíz del repositorio. *Commit changes*.
 4. *Settings* → *Pages* → *Build and deployment* → *Deploy from a branch* → rama `main`, carpeta `/ (root)` → *Save*.
-5. Esperar unos minutos (puede tardar hasta 10) y abrir `https://<usuario>.github.io/colorinche/`.
+5. Esperar unos minutos (puede tardar hasta 10) y abrir `https://<usuario>.github.io/colorines/`.
 6. Para actualizar: correr el paso 0 y volver a subir los archivos cambiados (siempre también `sw.js`).
 
 ### Opción 2: Netlify Drop
@@ -63,7 +63,7 @@ Para instalarse necesita estar publicada en **https**. Dos opciones gratuitas:
    Da una dirección `https://<nombre>.netlify.app`.
 3. Revisar que el proyecto sea **público**: en los planes nuevos puede estar activado "privado por defecto"
    (el sitio sólo lo ve tu equipo). Prueba fácil: abrir la dirección en una **ventana privada/incógnito**;
-   tiene que abrir Colorinche sin pedir usuario ni contraseña.
+   tiene que abrir Colorines sin pedir usuario ni contraseña.
 4. Recién ahí abrirla en la tablet.
 5. Para actualizar: correr el paso 0 y, en el panel del proyecto, arrastrar de nuevo la carpeta `app/` a la
    zona de *Production deploys*.
@@ -71,16 +71,16 @@ Para instalarse necesita estar publicada en **https**. Dos opciones gratuitas:
 ### Otros hostings (Cloudflare Pages, Vercel, Firebase…)
 
 También sirven, siempre que sean **https** y públicos. Varios redirigen `/index.html` → `/` ("URLs lindas");
-Colorinche ya lo tiene en cuenta (guarda la página final, sin la redirección), pero conviene probarlo una vez:
+Colorines ya lo tiene en cuenta (guarda la página final, sin la redirección), pero conviene probarlo una vez:
 abrir la dirección con internet, esperar unos 15 segundos, activar el **modo avión** y volver a abrirla (también
 `.../index.html`). Tiene que abrir igual. Si sólo abre con internet, no la instales ahí y avisá.
-Si en el mismo dominio publicás dos copias (p. ej. `.../colorinche/` y `.../colorinche-prueba/`), cada una guarda
+Si en el mismo dominio publicás dos copias (p. ej. `.../colorines/` y `.../colorines-prueba/`), cada una guarda
 lo suyo por separado y no se molestan.
 
 ### Instalar en la tablet
 
 - **Android (Chrome)**: abrir la dirección → menú ⋮ → **Instalar app** (o "Agregar a la pantalla principal").
-  Queda un ícono de Colorinche; abre a pantalla completa y funciona sin internet.
+  Queda un ícono de Colorines; abre a pantalla completa y funciona sin internet.
 - **iPad / iPhone (Safari)**: abrir la dirección en **Safari** → botón Compartir → **Agregar a pantalla de
   inicio** → Agregar.
   **Importante en iPad/iPhone**: instalala primero y **usala siempre desde ese ícono, no desde Safari**.

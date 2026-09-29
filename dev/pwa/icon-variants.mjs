@@ -1,4 +1,4 @@
-// Colorinche — variantes del ícono a partir de app/icons/icon.svg.
+// Colorines — variantes del ícono a partir de app/icons/icon.svg.
 // El SVG base tiene <rect id="bg" ... rx="..."> (fondo) y <g id="motif" ...> (dibujo).
 //  - any:      tal cual (cuadrado redondeado con esquinas transparentes).
 //  - maskable: fondo a sangre (sin esquinas) y motivo achicado para entrar en la zona segura

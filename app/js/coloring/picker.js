@@ -1,4 +1,4 @@
-/* Colorinche — catálogo de dibujos para colorear (#dibujos y #dibujos/<categoria>).
+/* Colorines — catálogo de dibujos para colorear (#dibujos y #dibujos/<categoria>).
 
    - Lista de categorías: tarjetas grandes con la portada coloreada al azar por el motor real.
    - Dentro de una categoría: grilla de dibujos (SVG de líneas como <img>); si un dibujo tiene

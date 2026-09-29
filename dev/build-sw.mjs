@@ -1,4 +1,4 @@
-// Colorinche — genera la lista de archivos y la versión del service worker (app/sw.js).
+// Colorines — genera la lista de archivos y la versión del service worker (app/sw.js).
 //
 // Escanea app/ (todo menos sw.js y archivos ocultos/basura), calcula una versión = hash SHA-256 del
 // contenido de todos los archivos y reescribe en app/sw.js el bloque entre los marcadores

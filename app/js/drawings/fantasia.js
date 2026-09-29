@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/fantasia.js
+/* Colorines — js/drawings/fantasia.js
    Dibujos para colorear de la categoría "Fantasía": unicornio, dragón, castillo, sirena, robot y monstruito.
    Lienzo 1000 × 1000, contorno 16, detalles internos 10–12 (ver dev/ARQUITECTURA.md, sección 5).
    El orden importa: lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */

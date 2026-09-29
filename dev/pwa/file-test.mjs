@@ -1,4 +1,4 @@
-// Colorinche — abrir por file:// (doble clic en index.html): sin manifest ni service worker, sin errores,
+// Colorines — abrir por file:// (doble clic en index.html): sin manifest ni service worker, sin errores,
 // y los íconos del <head> existen. Uso: cd dev && node pwa/file-test.mjs
 import fs from 'node:fs';
 import path from 'node:path';

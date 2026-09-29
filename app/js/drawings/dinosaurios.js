@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/dinosaurios.js
+/* Colorines — js/drawings/dinosaurios.js
    Dibujos para colorear de la categoría "Dinosaurios": T-rex, triceratops, diplodocus, estegosaurio,
    pterodáctilo, dino bebé, anquilosaurio, espinosaurio, parasaurolofo y velociraptor.
    Lienzo 1000 × 1000, contorno 16, detalles internos 12 (ver dev/ARQUITECTURA.md, sección 5).

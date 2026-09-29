@@ -1,4 +1,4 @@
-# Colorinche — arquitectura y contratos
+# Colorines — arquitectura y contratos
 
 App web estática para chicos de 3 a 8 años: colorear, pizarra mágica, neón, fuegos artificiales,
 subir imágenes y galería. Todo en español (rioplatense: "tocá", "mantené apretado"), sin backend.
@@ -68,7 +68,7 @@ Estilos: siempre bajo el prefijo `.screen--<ruta>` para no pisar a otros.
 `sleep(ms), nextFrame(), dpr()`, `el('tag.clase1.clase2', attrs, hijos)` (attrs: `onclick`, `style` objeto,
 `dataset`, `text`, `html`, cualquier atributo), `canvas(w,h)`, `loadImage(src)`, `blobToImage(blob)`,
 `svgToImage(svgText)`, `canvasToBlob(canvas, type, q)`, `thumbnail(source, maxSide=480, bg='#fff')` → canvas,
-`downloadBlob(blob, nombre)`, `fileName(base)` → `colorinche-vaca-2026-09-27.png`, `hsl(h,s,l,a)`,
+`downloadBlob(blob, nombre)`, `fileName(base)` → `colorines-vaca-2026-09-27.png`, `hsl(h,s,l,a)`,
 `hexToRgb, rgbToHex, mix(a,b,t)`, `localPoint(ev, el)`, `pressure(ev)`, `isCoarse()`,
 `pref.get(key, def) / pref.set(key, v)` (localStorage seguro, para preferencias chicas), `emitter()`.
 `CL.bus` es un emisor global.
@@ -88,7 +88,11 @@ Definir propios: `CL.sound.define('boom', (s, opts) => { s.tone({...}); s.noise(
 `s.env(gain,t,a,d,peak)`, `s.noiseBuffer()`. Silencio: `isMuted() setMuted(b) toggle()`; `CL.sound.events.on('mute', fn)`.
 Volúmenes suaves (0.05–0.2). Nada estridente.
 
-### `CL.db` (db.js) — IndexedDB `colorinche`
+### `CL.db` (db.js) — IndexedDB `colorines`
+La app antes se llamaba **Colorinche**: la primera vez que se abre la base, `db.js` pasa lo guardado en la base
+anterior `colorinche` y la borra (marca `migrado-colorinche` en `kv`); `ns.js` hace lo mismo con las claves
+`colorinche.*` de localStorage, y `sw.js` borra las cachés `colorinche|...` de su alcance. Esos son los únicos
+lugares de la app donde queda el nombre viejo (en `dev/pwa`, las pruebas que simulan el service worker viejo).
 - `CL.db.works`: `list({status, kind, source})`, `get(id)`, `save(work)` → devuelve la obra con `id/createdAt/updatedAt`,
   `findProgress(kind, source)`, `del(id)`.
 - `CL.db.uploads`: `list()` (visibles), `get(id)`, `save(up)`, `remove(id)` (borra progreso; si hay obras terminadas

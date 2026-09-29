@@ -1,4 +1,4 @@
-// Colorinche — prueba de la PWA servida por http://localhost:
+// Colorines — prueba de la PWA servida por http://localhost:
 //  1. el service worker se registra, se activa y termina el precache (todos los archivos de sw.js);
 //  2. el manifest es válido y la página es instalable (CDP: Page.getAppManifest / getInstallabilityErrors);
 //  3. sin internet (servidor apagado + context.setOffline) la app abre y navega:
@@ -29,7 +29,7 @@ const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FALLA ') + msg); i
 
 for (const size of sizes) {
   console.log(`\n=== ${size} ===`);
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'colorinche-pwa-'));
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'colorines-pwa-'));
   let srv = await startServer(PORT);
   const t = await launch({ size, persistent: profile });
   const { page, context } = t;
@@ -39,7 +39,7 @@ for (const size of sizes) {
     let st = await swState(page);
     check(st.state === 'activated', `SW activo (${st.state}), alcance ${st.scope}`);
     check(st.cached === st.expected && st.expected > 20, `precache completo: ${st.cached}/${st.expected} archivos en "${st.cache}"`);
-    check(st.cacheNames.filter((n) => n.startsWith('colorinche')).length === 1 && st.cacheNames.includes(st.cache), 'una sola caché de la app: ' + st.cacheNames.join(', '));
+    check(st.cacheNames.filter((n) => n.startsWith('colorines')).length === 1 && st.cacheNames.includes(st.cache), 'una sola caché de la app: ' + st.cacheNames.join(', '));
     await page.reload();
     await page.waitForTimeout(500);
     st = await swState(page);
@@ -52,7 +52,7 @@ for (const size of sizes) {
       check(man.url && man.url.endsWith('/manifest.webmanifest'), 'manifest enlazado: ' + man.url);
       check(!man.errors.length, 'manifest sin errores' + (man.errors.length ? ': ' + JSON.stringify(man.errors) : ''));
       const data = JSON.parse(man.data);
-      check(data.name === 'Colorinche' && data.lang === 'es' && data.start_url === './index.html', 'name/lang/start_url correctos');
+      check(data.name === 'Colorines' && data.lang === 'es' && data.start_url === './index.html', 'name/lang/start_url correctos');
       const inst = await cdp.send('Page.getInstallabilityErrors');
       check(!inst.installabilityErrors.length, 'instalable' + (inst.installabilityErrors.length ? ': ' + JSON.stringify(inst.installabilityErrors) : ' (sin errores de instalabilidad)'));
       // Íconos del manifest: existen, tipo correcto y tamaño real.

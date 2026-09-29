@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/mar.js
+/* Colorines — js/drawings/mar.js
    Dibujos para colorear de la categoría "Mar": ballena, pulpo, tiburón, cangrejo, estrella de mar,
    caballito de mar, delfín, medusa, foca, pez payaso y tortuga marina. Lienzo 1000 × 1000,
    contorno 16, detalles internos 10–14 (ver dev/ARQUITECTURA.md, sección 5). El orden importa:

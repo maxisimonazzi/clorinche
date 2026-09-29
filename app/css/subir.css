@@ -1,4 +1,4 @@
-/* Colorinche — Subir imágenes (ruta 'subir'). Todo bajo .screen--subir. */
+/* Colorines — Subir imágenes (ruta 'subir'). Todo bajo .screen--subir. */
 .screen--subir {
   --up-card: min(36vw, 56vh, 340px);
   --up-panel-w: clamp(260px, 31vw, 380px);

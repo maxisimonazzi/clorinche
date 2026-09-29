@@ -1,4 +1,4 @@
-// Colorinche — ícono rasterizado a 32 y 48 px y ampliado (pixelado) para juzgar la legibilidad en chico.
+// Colorines — ícono rasterizado a 32 y 48 px y ampliado (pixelado) para juzgar la legibilidad en chico.
 // Uso: cd dev && node pwa/icon-small.mjs  → dev/shots/pwa/icon-small.png
 import fs from 'node:fs';
 import path from 'node:path';

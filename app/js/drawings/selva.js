@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/selva.js
+/* Colorines — js/drawings/selva.js
    Dibujos para colorear de la categoría "Selva": león, elefante, jirafa, mono, cebra y cocodrilo.
    Lienzo 1000 × 1000, contorno 16, detalles internos 12 (ver dev/ARQUITECTURA.md, sección 5).
    El orden importa: lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */

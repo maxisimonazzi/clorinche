@@ -1,4 +1,4 @@
-/* Colorinche — sellos de la pizarra (CL.stamps).
+/* Colorines — sellos de la pizarra (CL.stamps).
    Dibujos vectoriales tiernos en una caja de 100×100 centrada en (0, 0), con contorno oscuro.
    Se pintan en el color elegido (partes secundarias en tonos derivados) o, con 'multi', en sus colores propios.
 

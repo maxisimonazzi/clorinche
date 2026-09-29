@@ -1,4 +1,4 @@
-/* Colorinche — zonas pintables a partir de la capa de líneas.
+/* Colorines — zonas pintables a partir de la capa de líneas.
 
    CL.regions.lineLayer(source, w, h)  -> canvas negro con alfa (alfa = oscuridad de la línea)
    CL.regions.compute(lineCanvas)      -> RegionMap (síncrono)

@@ -1,4 +1,4 @@
-/* Colorinche — modo fuegos artificiales (ruta 'fuegos'). No guarda obras.
+/* Colorines — modo fuegos artificiales (ruta 'fuegos'). No guarda obras.
 
    Cada trazo es una MECHA de color. Apenas se apoya el dedo se prende una chispa en el
    inicio que avanza por el recorrido a velocidad constante, comiéndose la mecha y largando
@@ -29,7 +29,7 @@
   const HIST = 7;             // puntos de estela larga por partícula
   const FUSE_W = [24, 18, 13, 9, 5, 2.4]; // anchos de las pasadas de la mecha (halo -> centro)
   const IDLE_MS = 55;         // escena vacía: se redibuja a ~18 fps (el titilar no necesita más)
-  const COLOR_KEY = 'colorinche.fuegos.color'; // color elegido: sólo dura la sesión
+  const COLOR_KEY = 'colorines.fuegos.color'; // color elegido: sólo dura la sesión
 
   // Colores de mecha a elección (brillantes).
   const COLORS = [

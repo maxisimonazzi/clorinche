@@ -1,4 +1,4 @@
-/* Colorinche — arranque: protecciones contra zoom/scroll accidental, datos persistentes y navegación. */
+/* Colorines — arranque: protecciones contra zoom/scroll accidental, datos persistentes y navegación. */
 'use strict';
 (function (CL) {
   // Nada de zoom accidental de la página (pellizco, doble toque, Ctrl+rueda, Ctrl +/-).

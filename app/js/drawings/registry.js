@@ -1,4 +1,4 @@
-/* Colorinche — registro de dibujos para colorear.
+/* Colorines — registro de dibujos para colorear.
 
    Cada archivo de categoría llama:
      CL.drawings.add('granja', 'vaca', 'Vaca', `...formas SVG...`);

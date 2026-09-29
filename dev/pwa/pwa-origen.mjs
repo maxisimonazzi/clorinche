@@ -1,9 +1,9 @@
-// Colorinche — el service worker NO se adueña de otras páginas del mismo sitio.
+// Colorines — el service worker NO se adueña de otras páginas del mismo sitio.
 // Escenarios (sobre copias temporales de app/ con sw.js regenerado):
 //  A. App en la RAÍZ de un origen que tiene otras páginas (repo usuario.github.io, localhost reusado):
 //     con internet /otro/ y /blog.html se ven tal cual, sus archivos (css) NO quedan en la caché de la app
 //     y siempre llegan frescos; una dirección que no existe (404) → la app; sin internet → la app.
-//  B. App en una SUBCARPETA (/colorinche/, como un repo de proyecto de GitHub Pages): funciona, /colorinche/x
+//  B. App en una SUBCARPETA (/colorines/, como un repo de proyecto de GitHub Pages): funciona, /colorines/x
 //     inexistente → la app, y /otro/ (fuera del alcance) ni pasa por el SW.
 // Capturas: dev/shots/pwa/origen-*.png
 // Uso: cd dev && node pwa/pwa-origen.mjs
@@ -49,7 +49,7 @@ const pageInfo = (page) => page.evaluate(() => ({
 // ---------- A. raíz de un origen compartido ----------
 {
   console.log('\n=== A. app en la raíz de un sitio con otras páginas ===');
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorinche-orA-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorines-orA-'));
   const root = path.join(tmp, 'sitio');
   copyApp(root);
   fs.mkdirSync(path.join(root, 'otro'));
@@ -70,7 +70,7 @@ const pageInfo = (page) => page.evaluate(() => ({
     let i = await pageInfo(page);
     check(r.status() === 200 && !i.app && i.path === '/otro/' && i.bg === 'rgb(255, 0, 0)', `con internet /otro/ → ${r.status()} ${i.path} "${i.title}" fondo ${i.bg}`);
     await shot(page, 'pwa/origen-A-otro-rojo');
-    // La otra página cambia: tiene que verse el cambio (nada quedó "congelado" en la caché de Colorinche).
+    // La otra página cambia: tiene que verse el cambio (nada quedó "congelado" en la caché de Colorines).
     fs.writeFileSync(path.join(root, 'otro', 'index.html'), OTRO('verde'));
     fs.writeFileSync(path.join(root, 'otro', 'estilo.css'), 'body{background:rgb(0,160,0)}');
     await page.goto(srv.url + 'otro/'); await page.waitForTimeout(400);
@@ -82,7 +82,7 @@ const pageInfo = (page) => page.evaluate(() => ({
       for (const n of await caches.keys()) for (const k of await (await caches.open(n)).keys()) if (/\/otro\/|blog/.test(k.url)) out.push(n + ' ' + k.url);
       return out;
     });
-    check(!leaked.length, 'la caché de Colorinche no guardó nada de las otras páginas' + (leaked.length ? ': ' + leaked.join(', ') : ''));
+    check(!leaked.length, 'la caché de Colorines no guardó nada de las otras páginas' + (leaked.length ? ': ' + leaked.join(', ') : ''));
 
     r = await page.goto(srv.url + 'blog.html'); await page.waitForTimeout(300);
     i = await pageInfo(page);
@@ -115,11 +115,11 @@ const pageInfo = (page) => page.evaluate(() => ({
 
 // ---------- B. subcarpeta (repo de proyecto de GitHub Pages) ----------
 {
-  console.log('\n=== B. app en /colorinche/ (repo de proyecto) ===');
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorinche-orB-'));
+  console.log('\n=== B. app en /colorines/ (repo de proyecto) ===');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorines-orB-'));
   const root = path.join(tmp, 'sitio');
   fs.mkdirSync(path.join(root, 'otro'), { recursive: true });
-  copyApp(path.join(root, 'colorinche'));
+  copyApp(path.join(root, 'colorines'));
   fs.writeFileSync(path.join(root, 'otro', 'index.html'), OTRO('rojo'));
   fs.writeFileSync(path.join(root, 'otro', 'estilo.css'), 'body{background:rgb(255,0,0)}');
   let srv = await startServer(8794, root);
@@ -127,25 +127,25 @@ const pageInfo = (page) => page.evaluate(() => ({
   const { page, context } = t;
   const e404 = trackErrors(page);
   try {
-    await page.goto(srv.url + 'colorinche/');
+    await page.goto(srv.url + 'colorines/');
     const st = await swState(page);
-    check(st.state === 'activated' && st.cached === st.expected && st.scope.endsWith('/colorinche/'), `SW activo con alcance ${st.scope}`);
+    check(st.state === 'activated' && st.cached === st.expected && st.scope.endsWith('/colorines/'), `SW activo con alcance ${st.scope}`);
     await page.reload(); await page.waitForTimeout(400);
     const cdp = await context.newCDPSession(page);
     const inst = await cdp.send('Page.getInstallabilityErrors');
-    check(!inst.installabilityErrors.length, 'instalable desde /colorinche/' + (inst.installabilityErrors.length ? ': ' + JSON.stringify(inst.installabilityErrors) : ''));
+    check(!inst.installabilityErrors.length, 'instalable desde /colorines/' + (inst.installabilityErrors.length ? ': ' + JSON.stringify(inst.installabilityErrors) : ''));
     let r = await page.goto(srv.url + 'otro/'); await page.waitForTimeout(400);
     let i = await pageInfo(page);
     const ctl = await page.evaluate(() => !!navigator.serviceWorker.controller);
     check(!i.app && !ctl && i.bg === 'rgb(255, 0, 0)', `/otro/ (fuera del alcance) → "${i.title}", controlada por el SW: ${ctl}`);
-    r = await page.goto(srv.url + 'colorinche/viejo/enlace'); await page.waitForTimeout(700);
+    r = await page.goto(srv.url + 'colorines/viejo/enlace'); await page.waitForTimeout(700);
     i = await pageInfo(page);
-    check(i.app && i.path === '/colorinche/index.html', `/colorinche/viejo/enlace (404) → la app (${i.path})`);
+    check(i.app && i.path === '/colorines/index.html', `/colorines/viejo/enlace (404) → la app (${i.path})`);
     await srv.stop();
     await context.setOffline(true);
-    await page.goto(srv.url + 'colorinche/index.html#pizarra'); await page.waitForTimeout(1200);
+    await page.goto(srv.url + 'colorines/index.html#pizarra'); await page.waitForTimeout(1200);
     const scr = await page.evaluate(() => document.body.dataset.screen);
-    check(scr === 'pizarra', `sin internet /colorinche/index.html#pizarra → pantalla "${scr}"`);
+    check(scr === 'pizarra', `sin internet /colorines/index.html#pizarra → pantalla "${scr}"`);
     await shot(page, 'pwa/origen-B-offline-pizarra');
   } catch (e) {
     check(false, 'excepción: ' + (e.stack || e));

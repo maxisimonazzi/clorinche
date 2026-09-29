@@ -1,4 +1,4 @@
-/* Colorinche — galería "Mis obras" (#obras y #obras/<workId>).
+/* Colorines — galería "Mis obras" (#obras y #obras/<workId>).
    - Dos pestañas con ícono: terminadas (estrella, por defecto) y sin terminar (lápiz).
    - Miniaturas grandes (más nuevas primero) con una insignia del tipo (colorear / pizarra / neón).
    - Tocar una obra abre la vista grande: SEGUIR, DESCARGAR PNG, BORRAR (mantener apretado) y cerrar.

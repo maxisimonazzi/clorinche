@@ -1,4 +1,4 @@
-// Colorinche — utilidades de verificación con Edge headless (Playwright).
+// Colorines — utilidades de verificación con Edge headless (Playwright).
 // Uso típico:
 //   import { launch, appUrl, shot, stroke, multiStroke } from './lib.mjs';
 //   const t = await launch({ size: 'tablet' });

@@ -1,4 +1,4 @@
-/* Colorinche — componentes de interfaz compartidos.
+/* Colorines — componentes de interfaz compartidos.
    - CL.ui.button({ icon, label, cls, onTap, sound })
    - CL.ui.holdButton({ icon, label, cls, duration, onConfirm })  (mantener apretado para borrar)
    - CL.ui.muteButton(), CL.ui.homeButton(), CL.ui.backButton(path)

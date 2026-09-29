@@ -1,4 +1,4 @@
-// Colorinche — utilidades de las pruebas PWA: levantar/cortar dev/serve.mjs y leer el estado del SW.
+// Colorines — utilidades de las pruebas PWA: levantar/cortar dev/serve.mjs y leer el estado del SW.
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { DEV } from '../lib.mjs';
@@ -13,7 +13,7 @@ export function startServer(port, root = null) {
     let ok = false;
     child.stdout.on('data', (d) => {
       log.push(String(d));
-      if (!ok && /Colorinche en http/.test(String(d))) { ok = true; resolve(srv); }
+      if (!ok && /Colorines en http/.test(String(d))) { ok = true; resolve(srv); }
     });
     child.stderr.on('data', (d) => log.push(String(d)));
     child.on('exit', (code) => { if (!ok) reject(new Error('serve.mjs salió con ' + code + '\n' + log.join(''))); });
@@ -28,7 +28,7 @@ export function startServer(port, root = null) {
 /**
  * Espera a que el SW esté activo y la caché completa.
  * Devuelve { version, files, cacheNames, cache, cached, expected, state, scope, controlled }.
- * La caché de la app se llama 'colorinche|<alcance>|<versión>' (ver app/sw.js).
+ * La caché de la app se llama 'colorines|<alcance>|<versión>' (ver app/sw.js).
  */
 export async function swState(page, timeout = 20000) {
   return page.evaluate(async (timeout) => {
@@ -46,13 +46,13 @@ export async function swState(page, timeout = 20000) {
     let names = [], cached = 0;
     while (Date.now() - t0 < timeout) {
       names = await caches.keys();
-      const mine = names.find((n) => n === 'colorinche|' + reg.scope + '|' + version);
+      const mine = names.find((n) => n === 'colorines|' + reg.scope + '|' + version);
       cached = mine ? (await (await caches.open(mine)).keys()).length : 0;
       if (cached >= expected && reg.active && reg.active.state === 'activated') break;
       await new Promise((r) => setTimeout(r, 200));
     }
     return {
-      version, files, cacheNames: names, cache: 'colorinche|' + reg.scope + '|' + version, cached, expected,
+      version, files, cacheNames: names, cache: 'colorines|' + reg.scope + '|' + version, cached, expected,
       state: reg.active && reg.active.state, scope: reg.scope,
       controlled: !!navigator.serviceWorker.controller,
     };

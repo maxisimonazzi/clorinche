@@ -1,4 +1,4 @@
-// Colorinche — prueba de ACTUALIZACIÓN del service worker (sobre una copia temporal de app/):
+// Colorines — prueba de ACTUALIZACIÓN del service worker (sobre una copia temporal de app/):
 //  v1 instalada → cambia un archivo → build-sw.mjs genera versión nueva → al abrir de nuevo, el SW nuevo
 //  se instala, se activa solo (skipWaiting + clients.claim), borra la caché vieja y la próxima apertura
 //  ya usa el archivo nuevo, también sin internet.
@@ -15,7 +15,7 @@ let fails = 0;
 const check = (ok, msg) => { console.log((ok ? '  ok   ' : '  FALLA ') + msg); if (!ok) fails++; };
 const build = (dir) => spawnSync(process.execPath, [path.join(DEV, 'build-sw.mjs'), '--app', dir], { encoding: 'utf8' }).stdout.trim();
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorinche-upd-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorines-upd-'));
 const copy = path.join(tmp, 'app');
 fs.cpSync(APP, copy, { recursive: true });
 console.log('v1:', build(copy));
@@ -41,10 +41,10 @@ try {
     await reg.update().catch(() => {});
     const t0 = Date.now();
     while (Date.now() - t0 < 20000) {
-      const names = (await caches.keys()).filter((n) => n.startsWith('colorinche'));
+      const names = (await caches.keys()).filter((n) => n.startsWith('colorines'));
       if (names.length === 1 && reg.active && reg.active.state === 'activated' && !reg.installing && !reg.waiting) {
         const src = await (await fetch('sw.js', { cache: 'no-store' })).text();
-        if (names[0] === 'colorinche|' + reg.scope + '|' + src.match(/const VERSION = '([^']+)'/)[1]) return { names, ok: true };
+        if (names[0] === 'colorines|' + reg.scope + '|' + src.match(/const VERSION = '([^']+)'/)[1]) return { names, ok: true };
       }
       await new Promise((r) => setTimeout(r, 200));
     }

@@ -1,7 +1,7 @@
-/* Colorinche — COPIA DEL SERVICE WORKER ANTERIOR (hasta la revisión 2 de QA), sólo para pruebas.
+/* Colorines — COPIA DEL SERVICE WORKER ANTERIOR (hasta la revisión 2 de QA), sólo para pruebas.
    La usa dev/pwa/pwa-hosting.mjs para simular un dispositivo que ya tenía instalada la versión vieja:
    - guardaba las respuestas redirigidas tal cual (hosting que redirige /index.html → / ⇒ la app no abría);
-   - su caché se llamaba 'colorinche-<versión>' (sin alcance) y borraba las de otras copias del mismo sitio.
+   - su caché se llamaba 'colorinche-<versión>' (nombre anterior de la app, sin alcance) y borraba las de otras copias del mismo sitio.
    NO se publica (no está en app/). */
 'use strict';
 

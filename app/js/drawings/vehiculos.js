@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/vehiculos.js
+/* Colorines — js/drawings/vehiculos.js
    Dibujos para colorear de la categoría "Vehículos": auto, colectivo, camión de bomberos, tren,
    avión, cohete, barco, helicóptero, bicicleta, moto y globo aerostático. Vista lateral y tierna,
    con carita en el frente (o en la chapa más grande: la panza de la moto, el canasto de la bici).

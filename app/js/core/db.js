@@ -1,23 +1,81 @@
-/* Colorinche — almacenamiento en IndexedDB (queda en el disco del dispositivo).
+/* Colorines — almacenamiento en IndexedDB (queda en el disco del dispositivo).
 
-   Base 'colorinche', stores:
+   Base 'colorines', stores:
    - uploads: { id, createdAt, w, h, blob: PNG blanco y negro, thumb: Blob, hidden?: bool }
    - works:   { id, kind: 'colorear'|'pizarra'|'neon', source, status: 'progress'|'done',
                 createdAt, updatedAt, w, h, paint: Blob (capa de pintura/dibujo, PNG con transparencia),
                 thumb: Blob (miniatura compuesta), meta: {...} }
               · colorear: source = id del dibujo ('vaca') o 'u-<idUpload>' para imágenes subidas.
               · pizarra/neon: source = 'pizarra' | 'neon' (IndexedDB no indexa null), meta = { bg: 'blanco' | ... }.
-   - kv:      { key, value } preferencias varias. */
+   - kv:      { key, value } preferencias varias.
+   La app antes se llamaba "Colorinche": la primera vez, lo guardado en la base 'colorinche' se pasa a esta. */
 'use strict';
 (function (CL) {
-  const DB_NAME = 'colorinche';
+  const DB_NAME = 'colorines';
+  const OLD_DB = 'colorinche';
+  const MIGRATED = 'migrado-colorinche'; // clave en kv: ya se pasó (o no había nada que pasar)
   const VERSION = 1;
   let dbp = null;
   const events = CL.util.emitter();
 
   function open() {
     if (dbp) return dbp;
-    dbp = new Promise((resolve, reject) => {
+    dbp = openNew().then(async (db) => {
+      try { await migrateOld(db); } catch (e) { console.warn('No se pudo pasar lo guardado con el nombre anterior', e); }
+      return db;
+    });
+    dbp.catch(() => { dbp = null; });
+    return dbp;
+  }
+
+  /** Abre una base SÓLO si ya existe (si no, cancela la creación y resuelve null). Si no se puede abrir
+      (bloqueada por otra pestaña, error), rechaza: la migración se reintenta la próxima vez. */
+  function openExisting(name) {
+    return new Promise((resolve, reject) => {
+      const q = indexedDB.open(name);
+      let missing = false;
+      q.onupgradeneeded = () => { missing = true; try { q.transaction.abort(); } catch (e) { /* nada */ } };
+      q.onsuccess = () => resolve(q.result);
+      q.onerror = (ev) => { if (missing) { ev.preventDefault(); resolve(null); } else reject(q.error); };
+      q.onblocked = () => reject(new Error('Base anterior bloqueada por otra pestaña'));
+    });
+  }
+
+  const request = (req) => new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  /** Pasa obras, fotos y preferencias de la base con el nombre anterior (una sola vez) y la borra. */
+  async function migrateOld(db) {
+    if (await request(db.transaction('kv').objectStore('kv').get(MIGRATED))) return;
+    const old = await openExisting(OLD_DB);
+    const data = {};
+    if (old) {
+      try {
+        for (const s of ['uploads', 'works', 'kv']) {
+          if (old.objectStoreNames.contains(s)) data[s] = await request(old.transaction(s).objectStore(s).getAll());
+        }
+      } finally { old.close(); }
+    }
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(['uploads', 'works', 'kv'], 'readwrite');
+      for (const s in data) {
+        for (const rec of data[s] || []) {
+          // add: lo que ya exista en la base nueva no se pisa (el error de clave repetida no corta la copia).
+          tx.objectStore(s).add(rec).onerror = (ev) => { ev.preventDefault(); ev.stopPropagation(); };
+        }
+      }
+      tx.objectStore('kv').put({ key: MIGRATED, value: Date.now() });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error || new Error('Transacción abortada'));
+    });
+    if (old) { try { indexedDB.deleteDatabase(OLD_DB); } catch (e) { /* nada */ } }
+  }
+
+  function openNew() {
+    return new Promise((resolve, reject) => {
       if (!('indexedDB' in window)) { reject(new Error('Este navegador no tiene IndexedDB')); return; }
       let req;
       try { req = indexedDB.open(DB_NAME, VERSION); } catch (e) { reject(e); return; }
@@ -43,8 +101,6 @@
       req.onerror = () => reject(req.error);
       req.onblocked = () => console.warn('IndexedDB bloqueada por otra pestaña');
     });
-    dbp.catch(() => { dbp = null; });
-    return dbp;
   }
 
   /** Ejecuta fn(store) en una transacción y resuelve con el resultado del request. */

@@ -1,4 +1,4 @@
-# Colorinche — reglas para Claude
+# Colorines — reglas para Claude
 
 La app ya está estable y pulida. **Ahorrar tokens pesa más que verificar de más.** Contexto técnico en
 `dev/ARQUITECTURA.md`; uso y publicación en `README.md`.

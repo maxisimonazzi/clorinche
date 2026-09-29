@@ -1,10 +1,11 @@
-/* Colorinche — pantalla de colorear (#colorear/<dibujo>[/<idObra>]).
+/* Colorines — pantalla de colorear (#colorear/<dibujo>[/<idObra>]).
 
    <dibujo> = id del registro ('vaca') o 'u-<idUpload>' para una imagen subida.
    Capas: papel blanco, pintura (canvas del pintor) y líneas encima (<img> del SVG / PNG en "multiply",
    así se ven nítidas con cualquier zoom). Herramientas: balde (principal), pincel y goma con
-   "no salirse de las líneas", 3 grosores, deshacer/rehacer, zoom (pellizco, rueda, botones).
-   Paleta de 24 colores + selector de cualquier color + rellenos especiales.
+   "no salirse de las líneas", 3 grosores, deshacer/rehacer, borrar todo (mantener apretado), zoom (pellizco,
+   rueda, botones). Paleta de 27 colores + selector de cualquier color + rellenos especiales. Tocar un color lo
+   elige; mantenerlo apretado (o clic derecho) lo elige como SEGUNDO color de los rellenos especiales.
    Autoguardado con CL.db.works (sólo después de la primera pincelada/balde). */
 'use strict';
 (function (CL) {
@@ -36,24 +37,33 @@
       <path d="M20 14v12M14 20h12" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`,
     clZoomOut: `<circle cx="20" cy="20" r="12.5" fill="#e3f5ff" ${S3}/><path d="M29.5 29.5 41 41" stroke="${INK}" stroke-width="6.5" stroke-linecap="round"/>
       <path d="M14 20h12" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`,
+    // Hoja con una flecha que da la vuelta: empezar de nuevo.
+    clClear: `<path d="M11.5 5.5h16l9 9v26a3 3 0 0 1-3 3h-22a3 3 0 0 1-3-3v-32a3 3 0 0 1 3-3z" fill="#fff" ${S3}/>
+      <path d="M27.5 5.5v9h9" fill="none" ${S3}/>
+      <path d="M31 30.5a9 9 0 1 1-3.2-6.9" fill="none" stroke="#ff9f1c" stroke-width="4.2" stroke-linecap="round"/>
+      <path d="M29.6 17.8l-1.3 6.4 6.5.2" fill="none" stroke="#ff9f1c" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>`,
     clZoomFit: `<path d="M8 18V8h10M30 8h10v10M40 30v10H30M18 40H8V30" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
       <rect x="16" y="16" width="16" height="16" rx="3.5" fill="#ffd23f" ${S3}/>`,
   });
 
-  /* ---------- paleta: 24 colores (en tríos: cada trío es una columna/fila de la grilla) ---------- */
+  /* ---------- paleta: 27 colores en tríos (cada trío es una fila de la grilla; con la pantalla parada, una
+     columna): una familia por trío, de claro a oscuro ---------- */
   const PALETTE = [
     ['#f23a3a', 'Rojo'], ['#ff8a1c', 'Naranja'], ['#ffd52e', 'Amarillo'],
     ['#9ad62a', 'Verde claro'], ['#27ae4f', 'Verde'], ['#17703a', 'Verde oscuro'],
     ['#4cc3ff', 'Celeste'], ['#2d68e0', 'Azul'], ['#1c2d7a', 'Azul oscuro'],
-    ['#8a4fdf', 'Violeta'], ['#ff3f97', 'Rosa fuerte'], ['#ffa8cf', 'Rosa'],
-    ['#c9a6ff', 'Lila'], ['#bfe6ff', 'Celeste pastel'], ['#a6ecc7', 'Verde agua'],
+    ['#c9a6ff', 'Lila'], ['#8a4fdf', 'Violeta'], ['#5b2a9e', 'Morado'],
+    ['#ffa8cf', 'Rosa'], ['#ff3f97', 'Rosa fuerte'], ['#c8187c', 'Fucsia'],
+    ['#fff08a', 'Amarillo claro'], ['#a6ecc7', 'Verde agua'], ['#bfe6ff', 'Celeste pastel'],
     ['#ffc39a', 'Durazno'], ['#ffdcbd', 'Piel clara'], ['#c98a5e', 'Piel morena'],
     ['#8a5a2b', 'Marrón'], ['#573617', 'Marrón oscuro'], ['#262626', 'Negro'],
     ['#ffffff', 'Blanco'], ['#cfcfd8', 'Gris claro'], ['#85858f', 'Gris'],
   ];
   const SPECIALS = [
     ['rainbow', 'Arcoíris'], ['gradient', 'Degradé'], ['sparkle', 'Brillitos'], ['dots', 'Lunares'],
+    ['stars', 'Estrellas'], ['hearts', 'Corazones'], ['puzzle', 'Rompecabezas'], ['waves', 'Ondas'], ['scales', 'Escamas'],
   ];
+  const SECOND_MS = 1000;             // mantener apretado un color para elegirlo como segundo color
   const SIZES = [12, 26, 50];         // diámetro del pincel/goma en px de pantalla
   const SIZE_LABELS = ['Finito', 'Mediano', 'Grueso'];
   const MAX_ZOOM = 5;
@@ -110,13 +120,17 @@
       // "No salirse" arranca siempre activado (si un chico lo apaga sin querer, no queda apagado para siempre).
       clip: true,
       custom: U.pref.get('colorear.custom', '#6fd3c4'),
+      // Segundo color de los rellenos especiales (null = automático, uno que combine con el primero).
+      color2: U.pref.get('colorear.color2', null),
     };
     if (!/^#[0-9a-f]{6}$/i.test(st.color)) st.color = '#f23a3a';
     if (!/^#[0-9a-f]{6}$/i.test(st.custom)) st.custom = '#6fd3c4';
+    if (st.color2 != null && !/^#[0-9a-f]{6}$/i.test(st.color2)) st.color2 = null;
 
     let alive = true, ready = false, finishing = false;
     let painter = null, src = null, work = null;
     let dirty = false, touched = false, forceDone = false;
+    let blank = false;   // se borró todo y no se volvió a pintar
     let picker = null;
     const cleanups = [];
     const on = (t, type, fn, opts) => { t.addEventListener(type, fn, opts); cleanups.push(() => t.removeEventListener(type, fn, opts)); };
@@ -124,8 +138,11 @@
     /* ---------- DOM ---------- */
     const button = CL.ui.button;
     const doneBtn = button({ icon: 'star', text: '¡Terminé!', label: '¡Terminé!', cls: 'btn-pill btn-go cl-done', sound: null, onTap: () => finish() });
+    // Borrar todo (mantener apretado): en la barra de arriba con la pantalla apaisada y junto a las herramientas
+    // con la pantalla parada (en la barra de un celular parado no entra). Se ve uno u otro (ver colorear.css).
+    const clearBtn = (cls) => CL.ui.holdButton({ icon: 'clClear', label: 'Borrar todo: mantené apretado', cls: 'cl-clear ' + cls, onConfirm: () => clearAll() });
     const bar = el('div.topbar.cl-bar', null, [
-      CL.coloring.backButton(backPath), CL.ui.homeButton('cl-home'), el('div.spacer'), CL.ui.muteButton(), doneBtn,
+      CL.coloring.backButton(backPath), CL.ui.homeButton('cl-home'), el('div.spacer'), clearBtn('cl-clear-top'), CL.ui.muteButton(), doneBtn,
     ]);
 
     const toolBtns = {
@@ -146,6 +163,7 @@
       el('div.cl-group.cl-g-tools', null, Object.values(toolBtns)),
       optsGroup,
       el('div.cl-group.cl-g-hist', null, [undoBtn, redoBtn]),
+      el('div.cl-group.cl-g-clear', null, clearBtn('cl-clear-side')),
     ]);
 
     const stage = el('div.cl-stage');
@@ -165,21 +183,28 @@
 
     // Paleta
     const swatches = PALETTE.map(([hex, label], i) => {
-      const b = el('button.cl-sw', { type: 'button', 'aria-label': label, title: label, style: { background: hex }, dataset: { color: hex } });
+      const b = el('button.cl-sw', { type: 'button', 'aria-label': label, title: label + ' (mantené apretado: segundo color)', style: { background: hex }, dataset: { color: hex } });
       if (hex === '#ffffff') b.classList.add('cl-sw-white');
-      on(b, 'click', () => { CL.sound.play('select', { pitch: 0.8 + (i % 12) * 0.05 }); setColor(hex); });
+      const held = holdForSecond(b, hex);
+      on(b, 'click', () => {
+        if (held()) return;   // ya lo eligió como segundo color al mantenerlo apretado
+        CL.sound.play('select', { pitch: 0.8 + (i % 12) * 0.05 });
+        setColor(hex);
+      });
       return b;
     });
     const pickBtn = el('button.cl-sw.cl-pick', { type: 'button', 'aria-label': 'Elegir cualquier color', title: 'Elegir cualquier color' }, el('span.cl-pick-in'));
     on(pickBtn, 'click', () => { CL.sound.play('open'); openPicker(); });
+    const specialsBox = el('div.cl-sws.cl-specials');
     const specialBtns = SPECIALS.map(([kind, label]) => {
       const b = el('button.cl-sw.cl-sp', { type: 'button', 'aria-label': 'Relleno ' + label.toLowerCase(), title: label, dataset: { kind } }, el('canvas'));
       on(b, 'click', () => { CL.sound.play('sparkle', { count: 2 }); setFill(st.fill === kind ? 'solid' : kind); });
       return b;
     });
+    specialsBox.append(pickBtn, ...specialBtns);
     const pal = el('div.cl-pal', null, el('div.cl-pal-in', null, [
       el('div.cl-sws.cl-colors', null, swatches),
-      el('div.cl-sws.cl-specials', null, [pickBtn, ...specialBtns]),
+      specialsBox,
     ]));
 
     const wrap = el('div.cl', null, [bar, tools, stage, pal]);
@@ -198,10 +223,12 @@
       clipBtn.setAttribute('aria-pressed', String(st.clip));
       clipBtn.replaceChildren(CL.icon(st.clip ? 'clClipOn' : 'clClipOff'));
       let inPalette = false;
+      const c2 = st.color2 && st.color2 !== st.color ? st.color2 : null;
       for (const b of swatches) {
         const a = st.fill === 'solid' && b.dataset.color === st.color;
         if (b.dataset.color === st.color) inPalette = true;
         b.classList.toggle('active', a);
+        b.classList.toggle('cl-second', b.dataset.color === c2);
       }
       pickBtn.classList.toggle('active', st.fill === 'solid' && !inPalette);
       pickBtn.style.setProperty('--pick', inPalette ? st.custom : st.color);
@@ -210,14 +237,15 @@
       refreshHistory();
       updateCursor();
     }
-    let lastSpecialColor = null;
+    let lastSpecials = null;
     function drawSpecials() {
-      if (lastSpecialColor === st.color) return;
-      lastSpecialColor = st.color;
+      const key = st.color + '|' + st.color2;
+      if (lastSpecials === key) return;
+      lastSpecials = key;
       const px = Math.round(56 * U.dpr());
       for (const b of specialBtns) {
         const c = b.querySelector('canvas');
-        const p = CL.fills.preview(b.dataset.kind, st.color, px);
+        const p = CL.fills.preview(b.dataset.kind, st.color, px, st.color2);
         c.width = px; c.height = px;
         c.getContext('2d').drawImage(p, 0, 0);
       }
@@ -240,6 +268,46 @@
       U.pref.set('colorear.color', hex);
       if (st.tool === 'eraser') st.tool = lastPaintTool;
       refresh();
+    }
+    /** Segundo color de los rellenos especiales. El mismo que el primero (o el que ya era segundo) vuelve al
+        automático. */
+    function setColor2(hex) {
+      st.color2 = hex === st.color || hex === st.color2 ? null : hex;
+      U.pref.set('colorear.color2', st.color2);
+      CL.sound.play('sparkle', { count: 3 });
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) { /* nada */ } }
+      specialsBox.classList.remove('cl-bump');
+      void specialsBox.offsetWidth;
+      specialsBox.classList.add('cl-bump');
+      refresh();
+    }
+    /* Mantener apretado un color SECOND_MS (dedo o lápiz) o clic derecho: segundo color. Un anillo se llena
+       mientras tanto; si el dedo se mueve (la paleta se desliza) o se suelta antes, es un toque común.
+       Devuelve una función que dice si el último toque ya se usó así (el 'click' que sigue se ignora). */
+    function holdForSecond(b, hex) {
+      let timer = 0, x0 = 0, y0 = 0, type = '', used = false, ring = null;
+      const stop = () => {
+        clearTimeout(timer); timer = 0;
+        if (ring) { ring.remove(); ring = null; }
+      };
+      const fire = () => { stop(); used = true; setColor2(hex); };
+      on(b, 'pointerdown', (ev) => {
+        type = ev.pointerType; used = false;
+        stop();
+        if (ev.button !== 0) return;
+        x0 = ev.clientX; y0 = ev.clientY;
+        ring = el('span.cl-hold', { 'aria-hidden': 'true', html: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" pathLength="100"/></svg>' });
+        ring.style.setProperty('--hold', SECOND_MS + 'ms');
+        b.append(ring);
+        timer = setTimeout(fire, SECOND_MS);
+      });
+      on(b, 'pointermove', (ev) => { if (timer && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 12) stop(); });
+      for (const t of ['pointerup', 'pointercancel', 'pointerleave']) on(b, t, () => { if (timer) stop(); });
+      on(b, 'contextmenu', (ev) => {
+        ev.preventDefault();
+        if (type === 'mouse' && !used) fire();   // clic derecho (en táctil, el menú del toque largo se ignora)
+      });
+      return () => used;
     }
     function setFill(kind) {
       st.fill = kind;
@@ -492,7 +560,7 @@
       if (st.tool === 'bucket') { act = { type: 'bucket', cx: ev.clientX, cy: ev.clientY, p }; return; }
       const erase = st.tool === 'eraser';
       const stroke = painter.beginStroke(p.x, p.y, {
-        erase, clip: st.clip, fill: { kind: st.fill, color: st.color },
+        erase, clip: st.clip, fill: { kind: st.fill, color: st.color, color2: st.color2 },
         width: SIZES[st.size] * imgPerCss(), pressure: U.pressure(ev),
       });
       if (!stroke) { act = null; return; }
@@ -530,7 +598,7 @@
     /** Si hay un trazo a medio hacer, queda como está (así lo que se guarda es lo que se ve). */
     function commitStroke() { if (act && act.type === 'stroke') toolUp(); }
     function bucket(p) {
-      const pr = painter.fillAt(p.x, p.y, { kind: st.fill, color: st.color }, { animate: !reducedMotion() });
+      const pr = painter.fillAt(p.x, p.y, { kind: st.fill, color: st.color, color2: st.color2 }, { animate: !reducedMotion() });
       if (!pr) { CL.sound.play('nope'); return; }
       CL.sound.play('splash', { pitch: 0.82 + Math.random() * 0.45 });
     }
@@ -701,6 +769,25 @@
       await painter.redo();
     }
 
+    /* ---------- borrar todo ---------- */
+    function clearAll() {
+      if (!painter || !ready || finishing) return;
+      if (blank || (!touched && !(work && work.paint))) return;   // no hay nada pintado
+      toolCancel();
+      if (!painter.clear()) return;
+      blank = true;
+      // Una obra terminada no se pierde: lo que se pinte ahora es una obra nueva ("Mis obras" la conserva).
+      if (work && work.status === 'done') {
+        work = null;
+        forceDone = false;
+        try { history.replaceState(history.state, '', '#colorear/' + source); } catch (e) { /* nada */ }
+      }
+      board.classList.remove('cl-wipe');
+      void board.offsetWidth;
+      board.classList.add('cl-wipe');
+      CL.sound.play('whoosh');
+    }
+
     /* ---------- guardado ---------- */
     // ver = versión de la pintura (sube con cada cambio); savedVer = la última que quedó en IndexedDB.
     let chain = Promise.resolve();
@@ -716,6 +803,7 @@
       // Balde, deshacer y rehacer son acciones sueltas: se guardan enseguida. Las pinceladas suelen
       // venir seguidas, así que esperan un poco más (igual hay guardado de emergencia al cerrar).
       const type = e && e.type;
+      if (type !== 'clear') blank = false;
       saver.schedule(type === 'stroke' || type === 'erase' ? 800 : 250);
     }
     function save() {
@@ -726,6 +814,14 @@
       dirty = false;
       const p = painter, v = ver;
       chain = chain.then(async () => {
+        if (blank && !forceDone) {
+          // Borró todo: como si no hubiera empezado (no queda una obra en blanco en "Sin terminar").
+          if (work) await CL.db.works.del(work.id);
+          work = null;
+          savedVer = Math.max(savedVer, v);
+          if (savedVer === ver && !dirty) CL.coloring.pending.clear(source);
+          return;
+        }
         // Momento de la "foto" (toBlob copia la pintura en el momento en que se llama).
         const snap = Date.now();
         const [paint, thumb] = await Promise.all([p.toBlob(), p.thumbBlob(480)]);
@@ -770,7 +866,7 @@
 
     async function finish() {
       if (!painter || finishing) return;
-      if (!touched && !(work && work.paint)) {
+      if (blank || (!touched && !(work && work.paint))) {
         // Todavía no pintó nada: el balde "salta" para invitar a pintar.
         CL.sound.play('nope');
         toolBtns.bucket.classList.remove('cl-nudge');

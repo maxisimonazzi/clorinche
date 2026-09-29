@@ -1,4 +1,4 @@
-/* Colorinche — navegación por hash (#inicio, #dibujos/granja, #colorear/vaca, ...).
+/* Colorines — navegación por hash (#inicio, #dibujos/granja, #colorear/vaca, ...).
    Funciona con el botón "atrás" de Android y al recargar la página.
 
    Registrar una pantalla:

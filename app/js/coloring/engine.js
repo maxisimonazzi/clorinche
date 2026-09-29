@@ -1,10 +1,11 @@
-/* Colorinche — motor de colorear (sin interfaz).
+/* Colorines — motor de colorear (sin interfaz).
 
    CL.coloring.RES()                           -> lado mayor de la imagen interna (2048, o 1536 con poca memoria)
    CL.coloring.loadSource(source, res)         -> { kind, id, name, cat, w, h, image, lineUrl, revoke() }
                                                   source = id de dibujo ('vaca') o 'u-<idUpload>'
    CL.coloring.rasterLines(image, w, h)        -> canvas opaco (líneas negras sobre blanco)
-   CL.coloring.createPainter({ w, h, regions, lines }) -> painter (capa de pintura, balde, pincel, goma, historial)
+   CL.coloring.createPainter({ w, h, regions, lines }) -> painter (capa de pintura, balde, pincel, goma, borrar
+                                                  todo, historial)
    CL.coloring.renderRandom(source, size, opts)-> Promise<canvas> zonas pintadas al azar + líneas
    CL.coloring.exportPNG(work)                 -> Promise<Blob> PNG a resolución completa
    CL.coloring.composite(paint, lines, w, h)   -> canvas: papel blanco + pintura + líneas (multiply)
@@ -172,7 +173,7 @@
       const bw = b.x1 - b.x0 + 1, bh = b.y1 - b.y0 + 1;
       const c = !fill.kind || fill.kind === 'solid'
         ? solidRect(fill.color, bw, bh)
-        : CL.fills.make(fill.kind, fill.color, bw, bh, { ox: b.x0, oy: b.y0, unit });
+        : CL.fills.make(fill.kind, fill.color, bw, bh, { ox: b.x0, oy: b.y0, unit, color2: fill.color2 });
       const cx = c.getContext('2d');
       cx.globalCompositeOperation = 'destination-in';
       cx.drawImage(zoneMask(id), 0, 0);
@@ -295,15 +296,26 @@
       return tmp;
     }
     function pattern(fill, rect) {
-      const key = [fill.kind, fill.color, rect.x0, rect.y0, rect.x1, rect.y1].join('|');
+      const key = [fill.kind, fill.color, fill.color2, rect.x0, rect.y0, rect.x1, rect.y1].join('|');
       if (patCache.key !== key) {
-        patCache = { key, c: CL.fills.make(fill.kind, fill.color, rect.x1 - rect.x0 + 1, rect.y1 - rect.y0 + 1, { ox: rect.x0, oy: rect.y0, unit }) };
+        patCache = { key, c: CL.fills.make(fill.kind, fill.color, rect.x1 - rect.x0 + 1, rect.y1 - rect.y0 + 1, { ox: rect.x0, oy: rect.y0, unit, color2: fill.color2 }) };
       }
       return patCache.c;
     }
 
+    /** Borra toda la pintura (queda en el historial: se puede deshacer). */
+    function clear() {
+      finishAnim();
+      if (busy) return false;
+      // "Después" es un canvas vacío de 1×1: al restaurar se limpia todo el rectángulo y no se dibuja nada.
+      push({ x: 0, y: 0, w: W, h: H, before: crop(canvas, 0, 0, W, H), after: U.canvas(1, 1) });
+      ctx.clearRect(0, 0, W, H);
+      events.emit('change', { type: 'clear' });
+      return true;
+    }
+
     /**
-     * Empieza un trazo en (x, y). opts: { erase, fill: {kind, color}, width (px de imagen), clip }
+     * Empieza un trazo en (x, y). opts: { erase, fill: {kind, color, color2}, width (px de imagen), clip }
      * Devuelve { move(x, y, pressure), end(), cancel() }.
      */
     function beginStroke(x, y, { erase = false, fill = { kind: 'solid', color: '#000' }, width = 40, clip = true, pressure = 0.5 } = {}) {
@@ -478,7 +490,7 @@
 
     return {
       canvas, ctx, w: W, h: H, regions, unit, events,
-      fillAt, beginStroke, finishAnim, undo, redo, warm,
+      fillAt, beginStroke, finishAnim, undo, redo, warm, clear,
       get canUndo() { return idx > 0; },
       get canRedo() { return idx < steps.length; },
       get busy() { return busy || !!anim; },
@@ -592,11 +604,11 @@
      El autoguardado es asíncrono (toBlob + IndexedDB) y no llega a terminar si la página se recarga o se
      cierra enseguida. Por eso al descargarse la página se anota la pintura en localStorage (toDataURL es
      síncrono) y la próxima vez se pasa a IndexedDB. Una entrada por dibujo:
-       colorinche.colorear.pendiente.<source> = { source, workId, status, name, w, h, mountTs, ts, png }
+       colorines.colorear.pendiente.<source> = { source, workId, status, name, w, h, mountTs, ts, png }
      `ts` es el momento de la foto; las obras guardan en meta.snap el momento de la foto que guardaron:
      gana la más nueva.
      ===================================================================== */
-  const PENDING = 'colorinche.colorear.pendiente.';
+  const PENDING = 'colorines.colorear.pendiente.';
   const PENDING_MAX_CHARS = 1600000;   // ~3 MB en UTF-16: deja lugar a otras preferencias y a otro dibujo
 
   /** Anota la pintura del pintor (SÍNCRONO). Si no entra, prueba con versiones más chicas. */

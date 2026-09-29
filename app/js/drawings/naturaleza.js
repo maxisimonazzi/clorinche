@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/naturaleza.js
+/* Colorines — js/drawings/naturaleza.js
    Dibujos para colorear de la categoría "Naturaleza": sol, flor, árbol, mariposa, arcoíris y hongo.
    Lienzo 1000 × 1000, contorno 16 (ver dev/ARQUITECTURA.md, sección 5). El orden importa: lo que va
    adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */

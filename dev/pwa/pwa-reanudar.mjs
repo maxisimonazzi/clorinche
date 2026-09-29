@@ -1,4 +1,4 @@
-// Colorinche — app instalada que se "reanuda" desde recientes (sin recargar la página): ¿se entera de una
+// Colorines — app instalada que se "reanuda" desde recientes (sin recargar la página): ¿se entera de una
 // versión nueva? El navegador sólo busca sw.js al CARGAR la página, no en cambios de #ruta ni al volver de
 // segundo plano. Esta prueba mide las dos situaciones sobre una copia temporal de app/:
 //   1. tal como está hoy el núcleo → se espera que NO detecte la versión nueva (documentado);
@@ -42,7 +42,7 @@ window.addEventListener('load', () => {
 
 async function escenario(nombre, conArreglo, port) {
   console.log(`\n=== ${nombre} ===`);
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorinche-rea-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'colorines-rea-'));
   const copy = path.join(tmp, 'app');
   fs.cpSync(APP, copy, { recursive: true });
   const v1 = build(copy);
@@ -92,7 +92,7 @@ async function escenario(nombre, conArreglo, port) {
 
 const sin = await escenario('1. núcleo actual (sin arreglo)', false, 8795);
 console.log('  ', JSON.stringify(sin));
-check(/^colorinche\|[^,]*\|/.test(sin.cachesPizarra) && sin.cachesPizarra.endsWith('|' + sin.v1) && !sin.cachesPizarra.includes(',') && !sin.recargo,
+check(/^colorines\|[^,]*\|/.test(sin.cachesPizarra) && sin.cachesPizarra.endsWith('|' + sin.v1) && !sin.cachesPizarra.includes(',') && !sin.recargo,
   `sin arreglo la app reanudada sigue en la v1 (${sin.cachesPizarra}; pedidos de sw.js: ${sin.pedidosSw}) — limitación conocida, ver pedido al núcleo`);
 
 const con = await escenario('2. con el arreglo propuesto para main.js', true, 8796);

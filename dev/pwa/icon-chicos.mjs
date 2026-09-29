@@ -1,4 +1,4 @@
-// Colorinche — compara el ícono completo (icon.svg) con la versión para tamaños chicos (icon-small.svg)
+// Colorines — compara el ícono completo (icon.svg) con la versión para tamaños chicos (icon-small.svg)
 // a 16, 24, 32 y 48 px reales, ampliados sin suavizado, más a tamaño real sobre fondo claro y oscuro
 // (pestaña del navegador / barra de tareas). → dev/shots/pwa/icon-chicos.png
 // Uso: cd dev && node pwa/icon-chicos.mjs

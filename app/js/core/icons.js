@@ -1,4 +1,4 @@
-/* Colorinche — íconos SVG a color (viewBox 0 0 48 48).
+/* Colorines — íconos SVG a color (viewBox 0 0 48 48).
    Los módulos agregan los suyos con CL.icons.add({ nombre: '<path .../>' }).
    CL.icon('nombre') devuelve un <svg> listo para insertar. */
 'use strict';

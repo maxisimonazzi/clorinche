@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/comida.js
+/* Colorines — js/drawings/comida.js
    Dibujos para colorear de la categoría "Comida": helado, torta, frutilla, pizza, manzana y sandía.
    Estilo kawaii (todos con carita). Lienzo 1000 × 1000, contorno 16 (ver dev/ARQUITECTURA.md, sección 5).
    El orden importa: lo que va adelante se dibuja después y su relleno blanco tapa las líneas de atrás. */

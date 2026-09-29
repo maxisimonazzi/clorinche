@@ -1,4 +1,4 @@
-/* Colorinche — sonidos suaves sintetizados con Web Audio (sin archivos).
+/* Colorines — sonidos suaves sintetizados con Web Audio (sin archivos).
    CL.sound.play('tap')                     -> sonido corto
    CL.sound.define('nombre', (s, opts) => { ... })  -> registrar un sonido
    const h = CL.sound.loop('scribble'); h.update({ speed }); h.stop();

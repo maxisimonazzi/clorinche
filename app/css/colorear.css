@@ -1,4 +1,4 @@
-/* Colorinche — catálogo de dibujos (#dibujos) y pantalla de colorear (#colorear). */
+/* Colorines — catálogo de dibujos (#dibujos) y pantalla de colorear (#colorear). */
 
 /* =====================================================================
    Pantalla de colorear
@@ -53,6 +53,11 @@
 .screen--colorear .cl-clip.active { background: #e4fbef; }
 .screen--colorear .cl-size .cl-dot { display: block; border-radius: 50%; background: var(--cur); box-shadow: 0 0 0 2px rgba(43, 34, 64, 0.55); }
 .screen--colorear .btn.disabled { opacity: 0.35; pointer-events: auto; }
+/* Borrar todo: en la barra con la pantalla apaisada; con las herramientas si está parada (ver más abajo). */
+.screen--colorear .cl-g-clear { display: none; }
+.screen--colorear .cl-clear > .icon { width: 70%; height: 70%; }
+.screen--colorear .cl-board.cl-wipe { animation: cl-wipe 0.45s ease-out; }
+@keyframes cl-wipe { from { opacity: 0.25; } to { opacity: 1; } }
 .screen--colorear .cl-cur { fill: var(--cur); }
 .screen--colorear .cl-cur-s { stroke: var(--cur); }
 .screen--colorear .cl-nudge { animation: cl-nudge 0.7s ease; }
@@ -185,6 +190,28 @@
   box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.16), 0 0 0 3px #fff, 0 0 0 6px var(--ink);
   z-index: 1;
 }
+/* Segundo color de los rellenos: anillo punteado (el elegido tiene anillo lleno) */
+.screen--colorear .cl-sw.cl-second {
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.16), 0 0 0 3px #fff;
+  outline: 3px dashed var(--ink);
+  outline-offset: 3px;
+  z-index: 1;
+}
+/* Anillo que se llena mientras se mantiene apretado un color */
+.screen--colorear .cl-hold { position: absolute; inset: -7px; z-index: 2; pointer-events: none; }
+.screen--colorear .cl-hold svg { width: 100%; height: 100%; overflow: visible; transform: rotate(-90deg); }
+.screen--colorear .cl-hold circle {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 100;
+  animation: cl-hold var(--hold, 1s) linear forwards;
+}
+@keyframes cl-hold { to { stroke-dashoffset: 0; } }
+/* Recién elegido el segundo color: los rellenos "saltan" para que se note el cambio */
+.screen--colorear .cl-specials.cl-bump .cl-sp { animation: cl-bump 0.55s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes cl-bump { from { transform: scale(0.72); } to { transform: none; } }
 .screen--colorear .cl-sp canvas { width: 100%; height: 100%; border-radius: 50%; pointer-events: none; }
 .screen--colorear .cl-sp::after {
   content: "";
@@ -205,6 +232,25 @@
   border-radius: 50%;
   background: var(--pick);
   box-shadow: 0 0 0 3px #fff;
+}
+
+/* Horizontal con altura (tablet y compu): los rellenos en una columna al lado de los colores, así se ven
+   todos sin deslizar. */
+@media (orientation: landscape) and (min-height: 521px) {
+  .screen--colorear .cl-pal-in { flex-direction: row; align-items: flex-start; }
+  .screen--colorear .cl-specials {
+    order: -1;
+    grid-template-columns: var(--sw);
+    padding: 0 12px 0 0;
+    border-top: 0;
+    border-right: 3px dashed rgba(43, 34, 64, 0.15);
+  }
+}
+@media (orientation: landscape) and (min-height: 521px) and (max-height: 760px) {
+  .screen--colorear { --sw: 52px; --sw-gap: 7px; }
+}
+@media (orientation: landscape) and (min-height: 521px) and (max-height: 699px) {
+  .screen--colorear { --sw: 48px; --sw-gap: 6px; }
 }
 
 /* Cargando */
@@ -294,6 +340,8 @@
   .screen--colorear .cl-g-tools { order: 1; }
   .screen--colorear .cl-g-hist { order: 2; }
   .screen--colorear .cl-g-opts { order: 3; }
+  .screen--colorear .cl-g-clear { display: flex; order: 4; }
+  .screen--colorear .cl-bar .cl-clear-top { display: none; }
   .screen--colorear .cl-pal {
     overflow-x: auto;
     overflow-y: hidden;

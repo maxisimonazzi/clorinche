@@ -1,4 +1,4 @@
-/* Colorinche — espacio de nombres global y utilidades compartidas.
+/* Colorines — espacio de nombres global y utilidades compartidas.
    Todos los módulos son scripts clásicos (no módulos ES) para que la app
    funcione también abriendo index.html con doble clic (file://). */
 'use strict';
@@ -137,14 +137,14 @@ window.CL = window.CL || {};
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
 
-  /** Nombre de archivo lindo: colorinche-vaca-2026-09-27.png */
+  /** Nombre de archivo lindo: colorines-vaca-2026-09-27.png */
   U.fileName = (base) => {
     const d = new Date();
     const p = (n) => String(n).padStart(2, '0');
     const slug = String(base || 'dibujo').toLowerCase()
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    return `colorinche-${slug}-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.png`;
+    return `colorines-${slug}-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.png`;
   };
 
   U.hsl = (h, s, l, a = 1) => `hsla(${((h % 360) + 360) % 360},${s}%,${l}%,${a})`;
@@ -178,16 +178,31 @@ window.CL = window.CL || {};
   /** true si el dispositivo tiene pantalla táctil como puntero principal. */
   U.isCoarse = () => window.matchMedia && matchMedia('(pointer: coarse)').matches;
 
+  // La app antes se llamaba "Colorinche": sus preferencias y guardados de emergencia pasan al nombre nuevo.
+  try {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('colorinche.')) keys.push(k);
+    }
+    for (const k of keys) {
+      const nk = 'colorines.' + k.slice('colorinche.'.length);
+      const v = localStorage.getItem(k);
+      localStorage.removeItem(k); // primero se libera el lugar (un dibujo pendiente ocupa bastante)
+      if (v != null && localStorage.getItem(nk) == null) localStorage.setItem(nk, v);
+    }
+  } catch (e) { /* sin almacenamiento */ }
+
   /** Almacenamiento local seguro (preferencias chiquitas por dispositivo). */
   U.pref = {
     get(key, def) {
       try {
-        const v = localStorage.getItem('colorinche.' + key);
+        const v = localStorage.getItem('colorines.' + key);
         return v == null ? def : JSON.parse(v);
       } catch (e) { return def; }
     },
     set(key, value) {
-      try { localStorage.setItem('colorinche.' + key, JSON.stringify(value)); } catch (e) { /* sin almacenamiento */ }
+      try { localStorage.setItem('colorines.' + key, JSON.stringify(value)); } catch (e) { /* sin almacenamiento */ }
     },
   };
 

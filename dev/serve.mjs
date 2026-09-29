@@ -1,4 +1,4 @@
-// Colorinche — servidor estático mínimo para probar la app por http (service worker + instalación).
+// Colorines — servidor estático mínimo para probar la app por http (service worker + instalación).
 // Sin dependencias. Sirve la carpeta app/.
 //
 // Uso:
@@ -118,7 +118,7 @@ server.on('error', (e) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Colorinche en http://localhost:${PORT}/  (carpeta ${ROOT})`);
+  console.log(`Colorines en http://localhost:${PORT}/  (carpeta ${ROOT})`);
   if (HOST === '0.0.0.0') {
     for (const list of Object.values(os.networkInterfaces())) {
       for (const a of list || []) if (a.family === 'IPv4' && !a.internal) console.log(`  en la red local: http://${a.address}:${PORT}/`);

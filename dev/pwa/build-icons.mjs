@@ -1,4 +1,4 @@
-// Colorinche — genera los PNG del ícono a partir de app/icons/icon.svg (rasteriza Edge headless).
+// Colorines — genera los PNG del ícono a partir de app/icons/icon.svg (rasteriza Edge headless).
 // Uso: cd dev && node pwa/build-icons.mjs
 //   app/icons/icon-192.png          (any, esquinas redondeadas transparentes)
 //   app/icons/icon-512.png          (any)

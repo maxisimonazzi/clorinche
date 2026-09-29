@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/granja.js
+/* Colorines — js/drawings/granja.js
    Dibujos para colorear de la categoría "Granja": vaca, chancho, gallina, oveja, caballo, pato, pollito,
    cabra, burro, pavo y tractor.
    Lienzo 1000 × 1000, contorno 16 (ver dev/ARQUITECTURA.md, sección 5). El orden importa: lo que va

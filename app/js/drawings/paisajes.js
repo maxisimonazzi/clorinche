@@ -1,4 +1,4 @@
-/* Colorinche — js/drawings/paisajes.js
+/* Colorines — js/drawings/paisajes.js
    Dibujos para colorear de la categoría "Paisajes": escenarios completos (playa, montañas, campo, ciudad,
    bosque, fondo del mar, espacio, Polo Norte, plaza y casita).
    Lienzo 1000 × 1000 SIN marco: cielo, suelo y agua llegan a los bordes y el borde del lienzo cierra esas

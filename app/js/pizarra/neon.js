@@ -1,4 +1,4 @@
-/* Colorinche — Modo neón (dentro de la pizarra).
+/* Colorines — Modo neón (dentro de la pizarra).
    Rutas: #neon (retoma el progreso o empieza en blanco) y #neon/<workId> (sigue esa obra).
 
    Cómo se dibuja el brillo:
@@ -363,7 +363,7 @@
   function openOwnDb() {
     return new Promise((resolve) => {
       let q;
-      try { q = indexedDB.open('colorinche'); } catch (e) { resolve(null); return; }
+      try { q = indexedDB.open('colorines'); } catch (e) { resolve(null); return; }
       q.onupgradeneeded = () => { try { q.transaction.abort(); } catch (e) { /* nada */ } };
       q.onsuccess = () => {
         const d = q.result;
@@ -379,8 +379,8 @@
   /* Copia de rescate: al cerrar la página, una escritura en IndexedDB con imágenes grandes puede no
      llegar (el navegador corta antes de pasar los datos). Por eso el guardado de emergencia deja
      también una copia sincrónica en localStorage, que se pasa a la base en el próximo arranque. */
-  const RESCUE_DATA = 'colorinche.neonRescate';
-  const RESCUE_INFO = 'colorinche.neonRescate.info'; // "<id>|<updatedAt>" (chiquito, para no leer lo grande)
+  const RESCUE_DATA = 'colorines.neonRescate';
+  const RESCUE_INFO = 'colorines.neonRescate.info'; // "<id>|<updatedAt>" (chiquito, para no leer lo grande)
 
   function rescueWrite(rec, paintUrl, thumbUrl) {
     try {

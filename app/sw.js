@@ -1,9 +1,9 @@
-/* Colorinche — service worker: la app entera queda guardada en el dispositivo y abre sin internet.
+/* Colorines — service worker: la app entera queda guardada en el dispositivo y abre sin internet.
 
    - Al instalarse descarga TODOS los archivos de la app (lista generada por dev/build-sw.mjs) en una caché
-     con nombre versionado: 'colorinche|<alcance>|<hash del contenido>'. El alcance va en el nombre porque
+     con nombre versionado: 'colorines|<alcance>|<hash del contenido>'. El alcance va en el nombre porque
      la Cache Storage es de todo el origen: así dos copias de la app en el mismo sitio (p. ej.
-     usuario.github.io/colorinche/ y usuario.github.io/colorinche-prueba/) no se pisan ni se borran entre sí.
+     usuario.github.io/colorines/ y usuario.github.io/colorines-prueba/) no se pisan ni se borran entre sí.
    - Los archivos se guardan "limpios": si el hosting redirige (p. ej. /index.html → /, las "URLs lindas" de
      Cloudflare Pages, Vercel o Firebase), se guarda el contenido final sin la marca de redirección. Una
      respuesta redirigida no sirve para abrir una página: el navegador la rechaza y la app no abriría.
@@ -25,7 +25,7 @@
 'use strict';
 
 // <build-sw> (generado por dev/build-sw.mjs — no editar a mano)
-const VERSION = 'f42e62bf65f5';
+const VERSION = '3c6542457bbf';
 const FILES = [
   'index.html',
   'css/colorear.css',
@@ -82,11 +82,13 @@ const FILES = [
 ];
 // </build-sw>
 
-const SCOPE_URL = self.registration.scope; // p. ej. 'https://usuario.github.io/colorinche/'
-const PREFIX = 'colorinche|' + SCOPE_URL + '|';
+const SCOPE_URL = self.registration.scope; // p. ej. 'https://usuario.github.io/colorines/'
+const PREFIX = 'colorines|' + SCOPE_URL + '|';
 const CACHE = PREFIX + VERSION;
-const LEGACY = /^colorinche-[0-9a-f]{12}$/; // nombre de las versiones anteriores (sin alcance)
-const SCOPE = new URL(SCOPE_URL).pathname; // p. ej. '/' o '/colorinche/'
+// La app antes se llamaba "Colorinche": sus cachés quedaron con ese nombre y se borran al activarse.
+const OLD_PREFIX = 'colorinche|' + SCOPE_URL + '|';
+const LEGACY = /^colorinche-[0-9a-f]{12}$/; // nombre de versiones todavía más viejas (sin alcance)
+const SCOPE = new URL(SCOPE_URL).pathname; // p. ej. '/' o '/colorines/'
 const INDEX = new URL('index.html', SCOPE_URL).href;
 const OWN = new Set(FILES);
 const NET_TIMEOUT = 6000; // ms: una red "colgada" no deja la pantalla en blanco para siempre
@@ -123,7 +125,7 @@ self.addEventListener('activate', (event) => {
     await Promise.all(names.map(async (n) => {
       if (n === CACHE) return;
       // Versiones viejas de ESTA copia de la app (las de otras copias en el mismo sitio no se tocan).
-      if (n.startsWith(PREFIX)) return caches.delete(n);
+      if (n.startsWith(PREFIX) || n.startsWith(OLD_PREFIX)) return caches.delete(n);
       // Cachés con el nombre anterior (sin alcance): se borran sólo si son de esta copia (tienen nuestro index.html).
       if (LEGACY.test(n) && (await (await caches.open(n)).match(INDEX, { ignoreSearch: true }))) return caches.delete(n);
     }));
@@ -190,7 +192,7 @@ async function store(key, res) {
 }
 
 /**
- * ¿Esta copia de Colorinche fue retirada de la dirección? Si el servidor contesta que sw.js ya no existe
+ * ¿Esta copia de Colorines fue retirada de la dirección? Si el servidor contesta que sw.js ya no existe
  * (404/410; p. ej. en localhost:8765 ahora se sirve otro proyecto), el SW se da de baja y borra SU caché:
  * desde la próxima apertura la dirección muestra lo que haya ahí. Sin internet o con otros errores no hace
  * nada. Las obras y fotos (IndexedDB) nunca se tocan; si la app vuelve a publicarse, se reinstala sola.

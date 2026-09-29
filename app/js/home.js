@@ -1,4 +1,4 @@
-/* Colorinche — pantalla de inicio (#inicio).
+/* Colorines — pantalla de inicio (#inicio).
    Logo + nombre con letras de colores, 4 tarjetas enormes con ilustraciones propias
    (Colorear, Pizarra mágica, Subir foto, Mis obras), accesos chiquitos a Neón y Fuegos,
    botón de sonido y una decoración suave de fondo. Todo entra sin scroll en cualquier pantalla. */
@@ -153,12 +153,12 @@
     return layer;
   }
 
-  /** Logo: ícono de la app (si existe) + "Colorinche" con cada letra de un color. */
+  /** Logo: ícono de la app (si existe) + "Colorines" con cada letra de un color. */
   function logo() {
     const img = el('img.home-icon', { src: 'icons/icon.svg', alt: '', draggable: 'false' });
     img.addEventListener('error', () => img.remove());
-    const word = el('h1.home-title', { 'aria-label': 'Colorinche' });
-    'Colorinche'.split('').forEach((ch, i) => {
+    const word = el('h1.home-title', { 'aria-label': 'Colorines' });
+    'Colorines'.split('').forEach((ch, i) => {
       word.append(el('span.home-letter', {
         'aria-hidden': 'true',
         style: { color: LETTERS[i % LETTERS.length], animationDelay: (i * 0.12).toFixed(2) + 's' },
