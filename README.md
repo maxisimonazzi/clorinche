@@ -18,8 +18,8 @@
 
 ## 📄 Descripción
 
-**Colorines** es una app web para que los más chicos coloreen, dibujen y jueguen con colores desde una tablet,
-un celular o la compu. Está toda en español, se puede instalar como app (PWA) y, una vez abierta, **anda sin
+**Colorines** es una app web para que los más chicos coloreen, dibujen y jueguen aprendiendo colores y números
+desde una tablet, un celular o la compu. Está toda en español, se puede instalar como app (PWA) y, una vez abierta, **anda sin
 internet**.
 
 Es 100 % estática: HTML, CSS y JavaScript puro, **sin backend ni dependencias**. Todo lo que hacen los chicos se
@@ -100,8 +100,31 @@ dispositivo.
 <details>
 <summary>🖼️ Mis obras</summary>
 
-- Galería con miniaturas grandes de todo lo que se terminó.
-- Seguir pintando, descargar como PNG o borrar (manteniendo apretado).
+- Galería con miniaturas grandes de todo lo que se terminó (y lo que quedó sin terminar).
+- Seguir pintando, descargar como PNG, **imprimir** (PDF A4 con el logo, el nombre y www.colorines.com.ar) o
+  borrar (manteniendo apretado).
+- Al descargar o imprimir un dibujo para colorear se elige **con imágenes** si va pintado o sin pintar (para
+  pintarlo a mano con crayones).
+
+</details>
+
+<details>
+<summary>🎲 Juegos</summary>
+
+- **Colores:** doce gotitas de colores con el nombre abajo en mayúsculas; al tocar una, se escucha su nombre.
+- **Números:** del 0 al 10, cada número con esa cantidad de cosas (1 vaca, 2 caramelos, 3 pelotas...); al
+  tocarlo se escucha el número y las cosas saltan de a una para contarlas.
+- La voz es la del navegador: usa *Microsoft Sabina - Spanish (Mexico)* si está y, si no, la voz del sistema
+  (una en español). El botón de sonido también la apaga.
+
+</details>
+
+<details>
+<summary>👪 Para familias y ayuda</summary>
+
+- Abajo en el inicio, **Para familias** explica qué es Colorines, qué aprenden los chicos y cómo colaborar
+  (por ahora, compartiendo el enlace).
+- **Ayuda** muestra qué hace cada botón de cada sección.
 
 </details>
 

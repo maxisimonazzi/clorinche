@@ -1,7 +1,9 @@
 /* Colorines — galería "Mis obras" (#obras y #obras/<workId>).
    - Dos pestañas con ícono: terminadas (estrella, por defecto) y sin terminar (lápiz).
    - Miniaturas grandes (más nuevas primero) con una insignia del tipo (colorear / pizarra / neón).
-   - Tocar una obra abre la vista grande: SEGUIR, DESCARGAR PNG, BORRAR (mantener apretado) y cerrar.
+   - Tocar una obra abre la vista grande: SEGUIR, DESCARGAR PNG, IMPRIMIR (PDF), BORRAR (mantener apretado) y
+     cerrar. Al descargar o imprimir un dibujo para colorear se pregunta, con las dos imágenes, si va pintado o
+     sin pintar (para pintar a mano).
    - #obras/<id> resalta esa obra (ahí llega el chico después de "¡Terminé!").
    Las miniaturas se muestran con URLs de blob que se liberan al salir. */
 'use strict';
@@ -21,6 +23,12 @@
     galDone: `<path d="M24 6l5.4 11 12.1 1.8-8.8 8.5 2.1 12L24 33.6l-10.8 5.7 2.1-12-8.8-8.5L18.6 17z" fill="#ffd23f" ${S}/>
       <path d="M41 5v6M38 8h6M7 34v5M4.5 36.5h5" stroke="#ff9f1c" stroke-width="2.6" stroke-linecap="round"/>`,
     // Hoja a medio dibujar con lápiz (pestaña "sin terminar").
+    // Impresora con la hoja saliendo.
+    print: `<rect x="13" y="5.5" width="22" height="14" rx="2" fill="#fff" ${S}/>
+      <rect x="5.5" y="16.5" width="37" height="19" rx="5" fill="#7b61ff" ${S}/>
+      <rect x="13" y="28.5" width="22" height="14" rx="2" fill="#fff" ${S}/>
+      <path d="M17.5 34h13M17.5 38.5h8" stroke="#ff9f1c" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="36" cy="22.5" r="2.2" fill="#ffd23f"/>`,
     galProgress: `<rect x="6" y="7" width="27" height="34" rx="4" fill="#fff" ${S}/>
       <path d="M11 17h14M11 24h9" stroke="#b9b0cc" stroke-width="3" stroke-linecap="round"/>
       <path d="M24 42l1.8-7.2L39 21.6a3 3 0 0 1 4.2 0l.8.8a3 3 0 0 1 0 4.2L30.8 39.8z" fill="#ffd23f" ${S}/>`,
@@ -353,7 +361,7 @@
     });
     if (src) img.src = src;
 
-    const view = { work: w, hiUrl: null, layerUrls: null, busy: false, closed: false, pushed: false, close: null };
+    const view = { work: w, hiUrl: null, layerUrls: null, busy: false, closed: false, pushed: false, close: null, ask: null };
 
     // Botones de la vista: activación por toque robusto (anda con la palma apoyada).
     const viewButton = (opts, sound, fn) => {
@@ -370,6 +378,8 @@
     });
     const bDown = viewButton({ icon: 'download', label: 'Descargar imagen', cls: 'btn-lg gv-down' }, 'pop',
       () => download(view, bDown));
+    const bPrint = viewButton({ icon: 'print', label: 'Imprimir (PDF)', cls: 'btn-lg gv-print' }, 'pop',
+      () => printWork(view, bPrint));
     const bDel = CL.ui.holdButton({
       label: 'Mantené apretado para borrar', cls: 'btn-lg gv-del',
       onConfirm: () => {
@@ -381,12 +391,13 @@
     });
     const bClose = viewButton({ icon: 'close', label: 'Cerrar', cls: 'btn-lg gv-close' }, 'tap', () => view.close());
 
-    const box = el('div.gv', null, [pic, el('div.gv-actions', null, [bGo, bDown, bDel, bClose])]);
+    const box = el('div.gv', null, [pic, el('div.gv-actions', null, [bGo, bDown, bPrint, bDel, bClose])]);
     const m = CL.ui.modal(box, {
       closeButton: false,
       cls: 'gal-view',
       onClose: () => {
         view.closed = true;
+        if (view.ask) view.ask.close(); // la pregunta "¿pintado o para pintar?" se va con la vista
         // El fondo se sigue viendo 200 ms mientras se desvanece: que no se trague el próximo toque.
         back.style.pointerEvents = 'none';
         // Se cerró (atrás, Escape, otro dedo en el fondo) mientras se mantenía apretado el tacho:
@@ -537,20 +548,87 @@
     return { node: el('div.gv-layers', { 'aria-hidden': 'true' }, imgs), urls };
   }
 
-  async function download(view, btn) {
-    if (view.busy) return;
+  /* ---------- ¿Pintado o para pintar? ----------
+     Al descargar o imprimir un dibujo para colorear se elige con las dos imágenes (los chicos no leen): la obra
+     pintada o el dibujo sin pintar, para imprimirlo y pintarlo a mano. La pizarra y el neón no tienen versión
+     sin pintar: van directo. Resuelve 'paint', 'lines' o null (se cerró sin elegir). */
+  async function linesBlob(w) {
+    if (typeof w.source === 'string' && w.source.startsWith('u-')) {
+      const up = await CL.db.uploads.get(w.source.slice(2));
+      return up && up.blob instanceof Blob ? up.blob : null;
+    }
+    const svg = CL.drawings && CL.drawings.svg(w.source);
+    return svg ? new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }) : null;
+  }
+  function chooseVersion(view, w, action) {
+    if (w.kind !== 'colorear') return Promise.resolve('paint');
+    return new Promise((resolve) => {
+      let done = false, linesUrl = null;
+      const img = (src) => { const i = el('img', { alt: '', draggable: 'false' }); if (src) i.src = src; return i; };
+      const linesImg = img(null);
+      const option = (pic, label, value, cls) => {
+        const b = el('button.gv-opt.' + cls, { type: 'button', 'aria-label': label, title: label }, [
+          el('span.gv-opt-pic', null, pic), el('span.gv-opt-label', null, label),
+        ]);
+        onTap(b, () => { if (done) return; done = true; CL.sound.play('select'); m.close(); resolve(value); });
+        return b;
+      };
+      const printing = action === 'print';
+      const box = el('div.gv-ask', null, [
+        el('div.gv-ask-title', null, [CL.icon(printing ? 'print' : 'download'), el('span', null, printing ? '¿Cuál imprimimos?' : '¿Cuál descargamos?')]),
+        el('div.gv-ask-opts', null, [
+          option(img(urlFor(w)), 'Pintado', 'paint', 'gv-opt--paint'),
+          option(linesImg, 'Para pintar', 'lines', 'gv-opt--lines'),
+        ]),
+      ]);
+      // Escape cierra sólo esta pregunta (no la vista grande que está abajo).
+      const onKey = (ev) => { if (ev.key === 'Escape') { ev.stopPropagation(); ev.preventDefault(); m.close(); } };
+      window.addEventListener('keydown', onKey, true);
+      const m = CL.ui.modal(box, {
+        cls: 'gal-ask',
+        onClose: () => {
+          window.removeEventListener('keydown', onKey, true);
+          if (view.ask === m) view.ask = null;
+          if (linesUrl) setTimeout(() => URL.revokeObjectURL(linesUrl), 300);
+          if (!done) { done = true; resolve(null); }
+        },
+      });
+      view.ask = m;
+      linesBlob(w).then((b) => {
+        if (!b || done) return;
+        linesUrl = URL.createObjectURL(b);
+        linesImg.src = linesUrl;
+      }).catch(() => { /* queda el cuadro en blanco: igual se entiende */ });
+    });
+  }
+
+  /** PNG del dibujo sin pintar (papel blanco + líneas), del mismo tamaño que la obra. */
+  const linesPNG = (w) => CL.coloring.exportPNG(Object.assign({}, w, { paint: null }));
+
+  /** Descarga (fn = 'download') o arma el PDF para imprimir (fn = 'print'), después de preguntar cuál. */
+  async function deliver(view, btn, action) {
+    if (view.busy || view.ask) return;
+    const w = latest(view.work.id) || view.work; // la versión más nueva, si se refrescó mientras tanto
+    const which = await chooseVersion(view, w, action);
+    if (!which || view.closed || view.busy) return;
     view.busy = true;
     btn.classList.add('gv-busy');
     let ok = false;
     try {
-      const w = latest(view.work.id) || view.work; // la versión más nueva, si se refrescó mientras tanto
-      const blob = await exportCached(w);
-      U.downloadBlob(blob, U.fileName(baseName(w)));
+      const png = which === 'lines' ? await linesPNG(w) : await exportCached(w);
+      const name = baseName(w) + (which === 'lines' ? ' para pintar' : '');
+      if (action === 'print') {
+        const d = w.kind === 'colorear' && CL.drawings && CL.drawings.get(w.source);
+        const pdf = await CL.print.pdf(await U.blobToImage(png), { title: d ? d.name : '' });
+        U.downloadBlob(pdf, U.fileName(name, 'pdf'));
+      } else {
+        U.downloadBlob(png, U.fileName(name));
+      }
       ok = true;
       CL.sound.play('sparkle');
-      CL.ui.toast('download', 900);
+      CL.ui.toast(action === 'print' ? 'print' : 'download', 900);
     } catch (e) {
-      console.warn('Galería: descarga fallida', e);
+      console.warn('Galería: no se pudo ' + (action === 'print' ? 'armar el PDF' : 'descargar'), e);
       CL.sound.play('nope');
     } finally {
       btn.classList.remove('gv-busy');
@@ -558,6 +636,8 @@
       if (ok) setTimeout(() => { view.busy = false; }, 1500); else view.busy = false;
     }
   }
+  const download = (view, btn) => deliver(view, btn, 'download');
+  const printWork = (view, btn) => deliver(view, btn, 'print');
 
   async function removeWork(id) {
     const s = st;

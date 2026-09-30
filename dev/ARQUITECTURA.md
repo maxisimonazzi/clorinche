@@ -33,6 +33,7 @@ app/                      ← la app (esto es lo que se abre / se publica)
   fonts/fredoka.woff2     (fuente Fredoka, OFL)
   css/core.css            (núcleo)
   css/home.css, css/galeria.css              → agente galería+inicio
+  css/juegos.css                             → juegos
   css/colorear.css                           → agente colorear
   css/subir.css                              → agente subir
   css/pizarra.css                            → agente pizarra
@@ -49,6 +50,8 @@ app/                      ← la app (esto es lo que se abre / se publica)
   js/pizarra/neon.js                          → agente neón
   js/pizarra/fuegos.js                        → agente fuegos
   js/gallery/galeria.js, js/home.js           → agente galería+inicio
+  js/gallery/imprimir.js                      → hoja para imprimir en PDF (CL.print), la usa la galería
+  js/juegos/juegos.js                         → juegos: Colores y Números con voz (CL.games)
 dev/                      ← herramientas de verificación (no se publican)
   lib.mjs                 helpers Playwright (Edge headless): launch, appUrl, shot, stroke, multiStroke, tap...
   drawings/preview.mjs    vista previa de dibujos con zonas coloreadas al azar
@@ -68,7 +71,7 @@ Estilos: siempre bajo el prefijo `.screen--<ruta>` para no pisar a otros.
 `sleep(ms), nextFrame(), dpr()`, `el('tag.clase1.clase2', attrs, hijos)` (attrs: `onclick`, `style` objeto,
 `dataset`, `text`, `html`, cualquier atributo), `canvas(w,h)`, `loadImage(src)`, `blobToImage(blob)`,
 `svgToImage(svgText)`, `canvasToBlob(canvas, type, q)`, `thumbnail(source, maxSide=480, bg='#fff')` → canvas,
-`downloadBlob(blob, nombre)`, `fileName(base)` → `colorines-vaca-2026-09-27.png`, `hsl(h,s,l,a)`,
+`downloadBlob(blob, nombre)`, `fileName(base, ext = 'png')` → `colorines-vaca-2026-09-27.png`, `hsl(h,s,l,a)`,
 `hexToRgb, rgbToHex, mix(a,b,t)`, `localPoint(ev, el)`, `pressure(ev)`, `isCoarse()`,
 `pref.get(key, def) / pref.set(key, v)` (localStorage seguro, para preferencias chicas), `emitter()`.
 `CL.bus` es un emisor global.
@@ -134,7 +137,7 @@ una promesa (se espera antes de mostrar la siguiente pantalla): usala para termi
 Rutas:
 | hash | pantalla | dueño |
 |---|---|---|
-| `#inicio` (por defecto) | inicio: 4 tarjetas grandes (Colorear, Pizarra, Subir foto, Mis obras) + sonido | galería+inicio |
+| `#inicio` (por defecto) | inicio: 5 tarjetas grandes (Colorear, Pizarra, Juegos, Subir foto, Mis obras) + sonido; abajo "Para familias" y "Ayuda" (ventanas) | galería+inicio |
 | `#dibujos` / `#dibujos/<cat>` | catálogo por categorías (incluye "Mis dibujos" = `mis`) | colorear |
 | `#colorear/<dibujo>` / `#colorear/<dibujo>/<workId>` | colorear (`<dibujo>` = 'vaca' o 'u-<id>') | colorear |
 | `#subir` | subir imagen | subir |
@@ -142,6 +145,7 @@ Rutas:
 | `#neon` / `#neon/<workId>` | modo neón | neón |
 | `#fuegos` | fuegos artificiales | fuegos |
 | `#obras` / `#obras/<workId>` | galería (el id opcional se resalta) | galería+inicio |
+| `#juegos` / `#juegos/colores` / `#juegos/numeros` | menú de juegos / Colores / Números | juegos |
 
 ### `CL.drawings` (registry.js)
 `add(cat, id, nombre, innerSvg)`, `get(id)`, `list(cat?)`, `all()`, `svg(id, size?)` → SVG completo con fondo blanco
@@ -211,13 +215,21 @@ zona que toca el borde (o -1), at(x, y) → id }`.
 blanco/negro. Pared = luminancia < 150.
 `CL.coloring.renderRandom(drawingIdOrUpload, size)` → canvas con las zonas pintadas al azar (lo usa la hoja de control).
 
-## 6 bis. Exportar obras (lo usa la galería para "descargar PNG")
+## 6 bis. Exportar obras (lo usa la galería para "descargar PNG" e "imprimir")
 
 Cada módulo dueño de un tipo de obra expone una función que arma la imagen final en alta resolución:
 - `CL.coloring.exportPNG(work)` → `Promise<Blob>` (fondo blanco + pintura + líneas encima).
 - `CL.pizarra.exportPNG(work)` → `Promise<Blob>` (fondo elegido + trazos).
 - `CL.neon.exportPNG(work)` → `Promise<Blob>` (fondo oscuro + trazos brillantes).
 Si alguna no existe todavía, la galería usa `work.thumb` como respaldo.
+
+Imprimir: `CL.print.pdf(imagen, { title })` → `Promise<Blob>` (js/gallery/imprimir.js) arma una hoja A4 con el logo,
+"Colorines" con letras de colores, www.colorines.com.ar, el título y la obra; el PDF es mínimo (una imagen JPEG que
+cubre la hoja) y no usa librerías. En colorear, antes de descargar o imprimir la galería pregunta con las dos
+imágenes si va pintado o sin pintar; el sin pintar sale de `CL.coloring.exportPNG({ ...obra, paint: null })`.
+
+Voz (juegos): `CL.games.say(texto)` usa `speechSynthesis`; prefiere la voz "Microsoft Sabina - Spanish (Mexico)",
+después la voz por defecto si es en español, después cualquier voz en español. Respeta el botón de sonido.
 Para abrir una obra: colorear → `colorear/<source>/<id>`, pizarra → `pizarra/<id>`, neón → `neon/<id>`.
 
 ## 7. Verificación

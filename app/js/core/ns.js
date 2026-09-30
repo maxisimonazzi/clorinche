@@ -137,14 +137,14 @@ window.CL = window.CL || {};
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   };
 
-  /** Nombre de archivo lindo: colorines-vaca-2026-09-27.png */
-  U.fileName = (base) => {
+  /** Nombre de archivo lindo: colorines-vaca-2026-09-27.png (o .pdf, etc. con `ext`) */
+  U.fileName = (base, ext = 'png') => {
     const d = new Date();
     const p = (n) => String(n).padStart(2, '0');
     const slug = String(base || 'dibujo').toLowerCase()
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    return `colorines-${slug}-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.png`;
+    return `colorines-${slug}-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}.${ext}`;
   };
 
   U.hsl = (h, s, l, a = 1) => `hsla(${((h % 360) + 360) % 360},${s}%,${l}%,${a})`;

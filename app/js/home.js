@@ -1,7 +1,8 @@
 /* Colorines — pantalla de inicio (#inicio).
-   Logo + nombre con letras de colores, 4 tarjetas enormes con ilustraciones propias
-   (Colorear, Pizarra mágica, Subir foto, Mis obras), accesos chiquitos a Neón y Fuegos,
-   botón de sonido y una decoración suave de fondo. Todo entra sin scroll en cualquier pantalla. */
+   Logo + nombre con letras de colores, 5 tarjetas enormes con ilustraciones propias
+   (Colorear, Pizarra mágica, Juegos, Subir foto, Mis obras), accesos chiquitos a Neón y Fuegos,
+   botón de sonido y una decoración suave de fondo. Abajo, dos botones para los grandes: "Para familias"
+   (qué es Colorines y cómo colaborar) y "Ayuda" (qué hace cada botón). Todo entra sin scroll. */
 'use strict';
 (function (CL) {
   const U = CL.util;
@@ -100,6 +101,28 @@
         <path d="M52 36V22M40 40l-9-8M64 40l9-8" stroke="#fff27a" stroke-width="5.5"/>
       </g>`,
 
+    // Bloques de juguete con números y una pelota.
+    juegos: `
+      <ellipse cx="116" cy="186" rx="98" ry="9" fill="${INK}" opacity=".12"/>
+      <g transform="rotate(-6 76 144)">
+        <rect x="38" y="106" width="76" height="76" rx="14" fill="#ff5a5f" stroke="${INK}" stroke-width="5"/>
+        <text x="76" y="163" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="58" fill="#fff" stroke="${INK}" stroke-width="5" paint-order="stroke">1</text>
+      </g>
+      <g transform="rotate(5 158 144)">
+        <rect x="120" y="106" width="76" height="76" rx="14" fill="#7b61ff" stroke="${INK}" stroke-width="5"/>
+        <text x="158" y="163" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="58" fill="#fff" stroke="${INK}" stroke-width="5" paint-order="stroke">2</text>
+      </g>
+      <g transform="rotate(-3 112 66)">
+        <rect x="74" y="28" width="76" height="76" rx="14" fill="#ffd23f" stroke="${INK}" stroke-width="5"/>
+        <text x="112" y="85" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="58" fill="#fff" stroke="${INK}" stroke-width="5" paint-order="stroke">3</text>
+      </g>
+      <g transform="translate(196 64)"><g class="hm-ball">
+        <circle r="24" fill="#2bc48a"/>
+        <path d="M-23 -6q23 16 46 0" fill="none" stroke="#fff" stroke-width="8"/>
+        <circle r="24" fill="none" stroke="${INK}" stroke-width="5"/>
+        <circle cx="-9" cy="-11" r="4" fill="#fff" opacity=".7"/>
+      </g></g>`,
+
     // Cuadro colgado con un arcoíris y una estrella de premio.
     obras: `
       <defs><clipPath id="hm-mat"><rect x="62" y="48" width="116" height="92"/></clipPath></defs>
@@ -127,7 +150,8 @@
   const CARDS = [
     { id: 'colorear', to: 'dibujos', label: 'Colorear', pitch: 1 },
     { id: 'pizarra', to: 'pizarra', label: 'Pizarra', name: 'Pizarra mágica', pitch: 1.12 },
-    { id: 'subir', to: 'subir', label: 'Subir foto', pitch: 1.26 },
+    { id: 'juegos', to: 'juegos', label: 'Juegos', pitch: 1.2 },
+    { id: 'subir', to: 'subir', label: 'Subir foto', pitch: 1.3 },
     { id: 'obras', to: 'obras', label: 'Mis obras', pitch: 1.5 },
   ];
 
@@ -245,13 +269,166 @@
     return wrap;
   }
 
+  /* ---------- Para los grandes: "Para familias" y "Ayuda" ---------- */
+  CL.icons.add({
+    // Dos grandes y un chico adelante.
+    homeFamily: `<circle cx="15" cy="12.5" r="6" fill="#ffd9b8" ${CL.icons.STROKE}/>
+      <path d="M4.5 40c0-9.5 4.7-15.5 10.5-15.5S25.5 30.5 25.5 40z" fill="#4cc3ff" ${CL.icons.STROKE}/>
+      <circle cx="33" cy="12.5" r="6" fill="#c98a5e" ${CL.icons.STROKE}/>
+      <path d="M22.5 40c0-9.5 4.7-15.5 10.5-15.5S43.5 30.5 43.5 40z" fill="#ff8fc7" ${CL.icons.STROKE}/>
+      <circle cx="24" cy="27" r="5" fill="#ffe3c4" ${CL.icons.STROKE}/>
+      <path d="M16 44c0-6.5 3.6-10.5 8-10.5s8 4 8 10.5z" fill="#ffd23f" ${CL.icons.STROKE}/>`,
+    homeHelp: `<circle cx="24" cy="24" r="19" fill="#4cc3ff" ${CL.icons.STROKE}/>
+      <path d="M17.8 18.6a6.4 6.4 0 1 1 9.4 5.7c-2 1.1-3.2 2.3-3.2 4.5v1.2" fill="none" stroke="#fff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="24" cy="35.8" r="2.7" fill="#fff"/>`,
+    homeShare: `<path d="M16.5 19.5H11a3 3 0 0 0-3 3V38a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3V22.5a3 3 0 0 0-3-3h-5.5" fill="#e3f5ff" ${CL.icons.STROKE}/>
+      <path d="M24 30V7.5" stroke="#2bc48a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M15.5 15l8.5-8.5 8.5 8.5" fill="none" stroke="#2bc48a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    homePalette: `<circle cx="14" cy="17" r="8.5" fill="#ff5a5f" ${CL.icons.STROKE}/>
+      <circle cx="30" cy="15" r="8.5" fill="#ffd23f" ${CL.icons.STROKE}/>
+      <circle cx="22" cy="30" r="8.5" fill="#4cc3ff" ${CL.icons.STROKE}/>
+      <circle cx="37" cy="33" r="6" fill="#2bc48a" ${CL.icons.STROKE}/>`,
+  });
+
+  const SITE = 'www.colorines.com.ar';
+  const SHARE = {
+    title: 'Colorines',
+    text: 'Colorines: para pintar, dibujar y jugar. Gratis, sin publicidad y pensada para chicos de 3 a 8 años.',
+    url: 'https://' + SITE,
+  };
+
+  /** Comparte el enlace (menú de compartir del teléfono) o, si no se puede, lo copia. */
+  async function share() {
+    try {
+      if (navigator.share) { await navigator.share(SHARE); return; }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // cerró el menú sin elegir
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE.url);
+      CL.ui.toast('check');
+    } catch (e) {
+      CL.sound.play('nope');
+    }
+  }
+
+  const p = (...parts) => el('p', null, parts);
+  const b = (t) => el('strong', null, t);
+  const list = (items) => el('ul', null, items.map((i) => el('li', null, i)));
+
+  /** Ventana para los grandes (texto con scroll adentro). */
+  function infoModal(cls, children) {
+    const m = CL.ui.modal(el('div.hm-info.' + cls, null, children), { cls: 'home-modal' });
+    m.root.classList.add('scroll-y');
+    return m;
+  }
+
+  function openFamily() {
+    const head = el('div.hm-info-head', null, [
+      el('img.hm-info-logo', { src: 'icons/icon.svg', alt: '', draggable: 'false' }),
+      el('div', null, [el('h2', null, 'Colorines, para las familias'), el('div.hm-info-site', null, SITE)]),
+    ]);
+    const shareBtn = CL.ui.button({ icon: 'homeShare', text: 'Compartir Colorines', label: 'Compartir Colorines', cls: 'btn-pill btn-go hm-share', sound: 'pop', onTap: share });
+    infoModal('hm-family', [
+      head,
+      el('h3', null, '¿Qué es Colorines?'),
+      p('Es una app gratuita para que chicas y chicos de ', b('3 a 8 años'), ' pinten, dibujen y jueguen desde la tablet, el celular o la compu. ',
+        'Está pensada para ', b('aprender jugando'), ': todo se maneja con dibujos y botones grandes, así que no hace falta saber leer.'),
+      el('h3', null, '¿Qué aprenden?'),
+      list([
+        [b('Colores y números'), ': en Juegos tocan un color o un número y lo escuchan en voz alta; con los números también cuentan.'],
+        [b('Motricidad fina'), ': pintar una zona, seguir un contorno, elegir el grosor del pincel.'],
+        [b('Creatividad'), ': combinan colores, rellenos y patrones, dibujan libremente y guardan sus obras.'],
+        [b('Autonomía'), ': pueden usarla solos, sin menús escondidos ni textos para leer.'],
+      ]),
+      el('h3', null, 'Tranquila y segura'),
+      list([
+        'Sin publicidad, sin cuentas y sin pedir datos.',
+        'Todo lo que hacen se guarda sólo en este dispositivo: nada se sube a internet.',
+        'Después de la primera vez funciona sin internet, y se puede instalar como una app.',
+        'Para borrar algo hay que mantener apretado el botón: un toque sin querer no borra nada.',
+      ]),
+      el('h3', null, 'Ideas para acompañar'),
+      list([
+        'Pregúntenles de qué color van a pintar cada parte y nombren juntos los colores.',
+        'Desde Mis obras pueden descargar o imprimir sus dibujos, pintados o sin pintar, para colorearlos con crayones.',
+      ]),
+      el('div.hm-help-us', null, [
+        el('h3', null, [CL.icon('heart'), '¿Quieren colaborar?']),
+        p('Colorines es gratis. Muy pronto van a poder colaborar con una ', b('donación'), ' para que siga creciendo con más dibujos y juegos. ',
+          'Por ahora, la mejor ayuda es ', b('compartirla'), ': pásenle el enlace a la mayor cantidad de familias, amigos y docentes. ¡Gracias!'),
+        shareBtn,
+      ]),
+    ]);
+  }
+
+  function openHelp() {
+    const row = (icon, ...text) => el('div.hm-row', null, [CL.icon(icon), el('p', null, text)]);
+    const section = (icon, title, rows) => el('section.hm-sec', null, [el('h3', null, [CL.icon(icon), title]), ...rows]);
+    infoModal('hm-help', [
+      el('h2', null, 'Ayuda: cómo se usa'),
+      p('Todo se maneja con toques. Para borrar cualquier cosa hay que ', b('mantener apretado'), ' el botón hasta que se llene el anillo.'),
+      section('home', 'Inicio', [
+        row('galColorear', b('Colorear'), ': elegí una categoría y un dibujo para pintar.'),
+        row('modePizarra', b('Pizarra'), ': dibujo libre. Los botoncitos de la tarjeta llevan a ', b('Neón'), ' y a ', b('Fuegos artificiales'), '.'),
+        row('jgJuegos', b('Juegos'), ': Colores y Números, con voz.'),
+        row('camera', b('Subir foto'), ': convertí una foto o un dibujo en una página para colorear.'),
+        row('gallery', b('Mis obras'), ': todo lo que pintaron y dibujaron.'),
+        row('soundOn', b('Sonido'), ': prende y apaga los sonidos y la voz.'),
+      ]),
+      section('galColorear', 'Colorear', [
+        row('clBucket', b('Balde'), ': tocá una zona y se pinta entera.'),
+        row('clBrush', b('Pincel'), ': pintá con el dedo, el lápiz o el mouse. Los puntitos eligen el grosor.'),
+        row('clClipOn', b('No salirse'), ': con el corazón prendido, el pincel respeta las líneas del dibujo.'),
+        row('clEraser', b('Goma'), ': borra lo pintado.'),
+        row('undo', b('Deshacer'), ' y ', b('rehacer'), ' (también con Ctrl+Z y Ctrl+Y).'),
+        row('clClear', b('Borrar todo'), ': mantené apretado para empezar de nuevo (se puede deshacer).'),
+        row('clZoomIn', b('Zoom'), ': pellizcá con dos dedos, usá la rueda del mouse o estos botones.'),
+        row('homePalette', b('Colores'), ': tocá uno para pintar con él. ', b('Mantenelo apretado'), ' (o clic derecho) para elegirlo como ',
+          b('segundo color'), ' de los rellenos especiales: el de los lunares, las estrellas, la otra punta del degradé...'),
+        row('star', b('Rellenos especiales'), ': arcoíris, degradé, brillitos, lunares, estrellas, corazones, rompecabezas, ondas y escamas. ',
+          'El círculo con el arcoíris elige cualquier color.'),
+        row('check', b('¡Terminé!'), ': guarda la obra en Mis obras con un festejo. Igual todo se guarda solo mientras pintan.'),
+      ]),
+      section('modePizarra', 'Pizarra, Neón y Fuegos', [
+        row('modePizarra', b('Pizarra mágica'), ': lápiz, fibra, pincel, crayón, aerosol, sellos y goma, en 4 grosores y con distintos fondos. ',
+          'Para borrar todo, deslizá la barrita.'),
+        row('modeNeon', b('Neón'), ': trazos que brillan. El espejo repite el dibujo en 2, 4, 6 u 8 partes.'),
+        row('modeFuegos', b('Fuegos artificiales'), ': dibujá una mecha y mirá cómo explota. Con varios dedos, varios fuegos a la vez.'),
+      ]),
+      section('camera', 'Subir foto', [
+        row('photo', 'Elegí una foto o sacala con la cámara. Se pasa a blanco y negro (podés ajustar cuánto) y queda en ',
+          b('Mis dibujos'), ', dentro de Colorear, lista para pintar.'),
+      ]),
+      section('gallery', 'Mis obras', [
+        row('galDone', b('Terminadas'), ' y ', b('sin terminar'), ': tocá una obra para verla grande.'),
+        row('pencilEdit', b('Seguir'), ' pintando o dibujando esa obra.'),
+        row('download', b('Descargar'), ' la imagen. En los dibujos para colorear pregunta si la querés pintada o sin pintar.'),
+        row('print', b('Imprimir'), ': arma un PDF con el logo de Colorines, pintado o para pintar a mano.'),
+        row('trash', b('Borrar'), ': mantené apretado.'),
+      ]),
+      section('jgJuegos', 'Juegos', [
+        row('jgColores', b('Colores'), ': tocá un color y escuchá su nombre.'),
+        row('jgNumeros', b('Números'), ': tocá un número del 0 al 10, escuchalo y contá las cosas.'),
+      ]),
+    ]);
+  }
+
+  function footer() {
+    const btn = (icon, text, fn) => {
+      const x = CL.ui.button({ icon, text, label: text, cls: 'btn-pill home-foot-btn', sound: null });
+      return onTap(x, () => { if (tooSoon()) return; CL.sound.play('open'); fn(); });
+    };
+    return el('footer.home-foot', null, [btn('homeFamily', 'Para familias', openFamily), btn('homeHelp', 'Ayuda', openHelp)]);
+  }
+
   CL.router.register('inicio', {
     mount(root) {
       mountedAt = performance.now();
       root.append(decoLayer());
       const top = el('header.home-top', null, [logo(), el('div.home-sound', null, CL.ui.muteButton())]);
       const grid = el('nav.home-grid', { 'aria-label': 'Elegí qué hacer' }, CARDS.map(card));
-      root.append(top, el('div.home-stage', null, grid));
+      root.append(top, el('div.home-stage', null, grid), footer());
     },
     unmount() {},
   });

@@ -25,7 +25,7 @@
 'use strict';
 
 // <build-sw> (generado por dev/build-sw.mjs — no editar a mano)
-const VERSION = '3c6542457bbf';
+const VERSION = '4ca9c95d73c5';
 const FILES = [
   'index.html',
   'css/colorear.css',
@@ -33,6 +33,7 @@ const FILES = [
   'css/fuegos.css',
   'css/galeria.css',
   'css/home.css',
+  'css/juegos.css',
   'css/neon.css',
   'css/pizarra.css',
   'css/subir.css',
@@ -70,7 +71,9 @@ const FILES = [
   'js/drawings/selva.js',
   'js/drawings/vehiculos.js',
   'js/gallery/galeria.js',
+  'js/gallery/imprimir.js',
   'js/home.js',
+  'js/juegos/juegos.js',
   'js/main.js',
   'js/pizarra/brushes.js',
   'js/pizarra/fuegos.js',

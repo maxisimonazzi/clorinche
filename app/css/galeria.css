@@ -248,7 +248,7 @@
 }
 .gal-view .gv {
   --pad: 36px; /* padding + borde del modal + margen del fondo, por lado y lado */
-  --abtn: min(var(--btn-lg), calc((100vw - 110px) / 4));
+  --abtn: min(var(--btn-lg), calc((100vw - 120px) / 5));
   --wmax: min(calc(100vw - 24px - var(--pad)), 900px);
   --hmax: calc(var(--app-h) - 24px - var(--pad) - 14px - var(--abtn) - 8px);
   display: flex;
@@ -318,9 +318,65 @@
   .screen--obras .gal-tab .icon { width: 30px; height: 30px; }
   .screen--obras .gal-count { font-size: 0.9rem; min-width: 1.7em; padding: 0.05em 0.3em; }
   .screen--obras .gal-grid { --gal-min: 110px; --gal-gap: 12px; padding-left: 10px; padding-right: 10px; }
-  .gal-view .gv { --abtn: calc((100vw - 24px - 36px - 18px) / 4); }
-  .gal-view .gv-actions { gap: 6px; }
+  .gal-view .gv { --abtn: max(46px, calc((100vw - 24px - 36px - 24px) / 5)); }
+  .gal-view .gv-actions { gap: 6px; flex-wrap: wrap; }
   .gal-view .gv-go, .gal-view .gv-close { margin: 0; }
+}
+
+/* ---------- ¿Pintado o para pintar? (antes de descargar o imprimir) ---------- */
+.modal-back.gal-ask .modal {
+  width: min(94vw, 640px);
+  padding: 18px 20px 22px;
+  border: 4px solid var(--ink);
+  border-radius: 30px;
+}
+.gal-ask .gv-ask { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.gal-ask .gv-ask-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--btn-sm);
+  padding: 0 calc(var(--btn-sm) + 6px);
+  font-size: 1.45rem;
+  font-weight: 600;
+}
+.gal-ask .gv-ask-title .icon { width: 46px; height: 46px; flex: 0 0 auto; }
+.gal-ask .gv-ask-opts { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 3vmin, 22px); width: 100%; }
+.gal-ask .gv-opt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  background: #fff3cc;
+  box-shadow: 0 5px 0 rgba(43, 34, 64, 0.2);
+  cursor: pointer;
+  outline: none;
+  touch-action: manipulation;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.gal-ask .gv-opt--lines { background: #e3f3ff; }
+.gal-ask .gv-opt:active { transform: translateY(4px) scale(0.97); box-shadow: 0 1px 0 rgba(43, 34, 64, 0.2); }
+.gal-ask .gv-opt:focus-visible { box-shadow: 0 0 0 4px var(--blue), 0 5px 0 rgba(43, 34, 64, 0.2); }
+@media (hover: hover) { .gal-ask .gv-opt:hover { transform: translateY(-3px) rotate(-1deg); } }
+.gal-ask .gv-opt-pic {
+  display: block;
+  width: min(100%, calc(var(--app-h) * 0.42));
+  aspect-ratio: 1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: inset 0 0 0 3px rgba(43, 34, 64, 0.15);
+  overflow: hidden;
+}
+.gal-ask .gv-opt-pic img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.gal-ask .gv-opt-label { font-size: 1.3rem; font-weight: 600; line-height: 1.1; text-align: center; }
+@media (max-height: 520px) {
+  .gal-ask .gv-ask { gap: 10px; }
+  .gal-ask .gv-opt { padding: 8px; gap: 6px; }
+  .gal-ask .gv-opt-label { font-size: 1.1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -97,22 +97,37 @@
 }
 .screen--inicio .home-grid {
   --g: clamp(10px, 2.4cqmin, 26px);
-  /* 2×2 por defecto: tarjetas tan grandes como entren, sin deformarse demasiado */
-  --cw: min(calc((100cqw - var(--g)) / 2), calc((100cqh - var(--g)) / 2 * 1.35), 400px);
-  --ch: min(calc((100cqh - var(--g)) / 2), calc(var(--cw) * 1.6));
+  /* Parada o casi cuadrada: 2 + 2 + 1 (la última al medio). Tarjetas tan grandes como entren, sin
+     deformarse demasiado. Grilla de 4 columnas: cada tarjeta ocupa 2. */
+  --cw: min(calc((100cqw - var(--g)) / 2), calc((100cqh - var(--g) * 2) / 3 * 1.35), 400px);
+  --ch: min(calc((100cqh - var(--g) * 2) / 3), calc(var(--cw) * 1.6));
   display: grid;
-  grid-template-columns: repeat(2, var(--cw));
-  grid-template-rows: repeat(2, var(--ch));
+  grid-template-columns: repeat(4, calc((var(--cw) - var(--g)) / 2));
+  grid-template-rows: repeat(3, var(--ch));
   gap: var(--g);
 }
-/* Pantallas bien apaisadas (compu, celular acostado): las 4 en fila. */
+.screen--inicio .home-cell { grid-column: span 2; }
+.screen--inicio .home-cell:nth-child(5) { grid-column: 2 / span 2; }
+/* Apaisada (tablet, compu): 3 + 2, en una grilla de 6 columnas. */
+@container (min-aspect-ratio: 11 / 10) {
+  .screen--inicio .home-grid {
+    --cw: min(calc((100cqw - var(--g) * 2) / 3), calc((100cqh - var(--g)) / 2 * 1.35), 360px);
+    --ch: min(calc((100cqh - var(--g)) / 2), calc(var(--cw) * 1.6));
+    grid-template-columns: repeat(6, calc((var(--cw) - var(--g)) / 2));
+    grid-template-rows: repeat(2, var(--ch));
+  }
+  .screen--inicio .home-cell:nth-child(4) { grid-column: 2 / span 2; }
+  .screen--inicio .home-cell:nth-child(5) { grid-column: 4 / span 2; }
+}
+/* Pantallas bien apaisadas (compu ancha, celular acostado): las 5 en fila. */
 @container (min-aspect-ratio: 19 / 10) {
   .screen--inicio .home-grid {
-    --cw: min(calc((100cqw - var(--g) * 3) / 4), calc(100cqh * 0.95), 340px);
+    --cw: min(calc((100cqw - var(--g) * 4) / 5), calc(100cqh * 0.95), 320px);
     --ch: min(100cqh, calc(var(--cw) * 1.42));
-    grid-template-columns: repeat(4, var(--cw));
+    grid-template-columns: repeat(5, var(--cw));
     grid-template-rows: var(--ch);
   }
+  .screen--inicio .home-cell:nth-child(n) { grid-column: auto; }
 }
 
 .screen--inicio .home-cell { position: relative; min-width: 0; min-height: 0; }
@@ -144,6 +159,7 @@
 }
 .screen--inicio .home-card--colorear { --c1: #ffe07a; --c2: #ffb938; }
 .screen--inicio .home-card--pizarra { --c1: #7fe6bd; --c2: #2bc48a; }
+.screen--inicio .home-card--juegos { --c1: #a6e6ff; --c2: #45b6f2; }
 .screen--inicio .home-card--subir { --c1: #c3b1ff; --c2: #8f78ff; }
 .screen--inicio .home-card--obras { --c1: #ffb3cf; --c2: #ff7fa9; }
 
@@ -182,6 +198,7 @@
 .screen--inicio .hm-slider { animation: home-slide 3.2s ease-in-out infinite; }
 .screen--inicio .hm-flash { animation: home-blink 1.8s ease-in-out infinite; }
 .screen--inicio .hm-star { animation: home-star 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+.screen--inicio .hm-ball { animation: home-bounce 1.7s ease-in-out infinite; }
 @keyframes home-color {
   0%, 100% { translate: 0 0; }
   50% { translate: -5px -3px; }
@@ -197,6 +214,11 @@
 @keyframes home-star {
   0%, 100% { rotate: -8deg; scale: 1; }
   50% { rotate: 8deg; scale: 1.08; }
+}
+
+@keyframes home-bounce {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -12px; }
 }
 
 @keyframes home-pop {
@@ -223,8 +245,70 @@
   .screen--inicio .home-letter,
   .screen--inicio .hm-crayon,
   .screen--inicio .hm-slider,
-  .screen--inicio .hm-star { animation: none; }
+  .screen--inicio .hm-star,
+  .screen--inicio .hm-ball { animation: none; }
   .screen--inicio .hm-flash { animation: none; opacity: 0; }
   .screen--inicio .home-card,
   .screen--inicio .home-minis { animation-duration: 0.01s; }
+}
+
+/* ---------- Abajo: "Para familias" y "Ayuda" (para los grandes, discretos) ---------- */
+.screen--inicio .home-foot {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 18px);
+  padding: 0 var(--gap) clamp(6px, 1.6vh, 14px);
+}
+.screen--inicio .home-foot-btn {
+  height: 46px;
+  padding: 0 16px 0 7px;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 3px 0 rgba(43, 34, 64, 0.14);
+}
+.screen--inicio .home-foot-btn .icon { width: 34px; height: 34px; }
+.screen--inicio .home-foot-btn .btn-text { font-size: 1.02rem; color: var(--ink-soft); }
+
+/* ---------- Ventanas "Para familias" y "Ayuda" (van en el body, no dentro de la pantalla) ---------- */
+.modal-back.home-modal .modal {
+  width: min(94vw, 720px);
+  padding: 22px 24px 26px;
+  border: 4px solid var(--ink);
+  border-radius: 30px;
+}
+.hm-info { font-size: 1.05rem; line-height: 1.45; }
+.hm-info h2 { margin: 4px 60px 10px 0; font-size: 1.6rem; line-height: 1.15; }
+.hm-info h3 { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-size: 1.2rem; line-height: 1.2; }
+.hm-info h3 .icon { width: 32px; height: 32px; flex: 0 0 auto; }
+.hm-info p { margin: 0 0 8px; }
+.hm-info ul { margin: 0 0 8px; padding-left: 1.3em; }
+.hm-info li { margin: 4px 0; }
+.hm-info strong { font-weight: 600; }
+.hm-info-head { display: flex; align-items: center; gap: 14px; margin-right: 60px; }
+.hm-info-head h2 { margin: 0; }
+.hm-info-logo { width: 66px; height: 66px; flex: 0 0 auto; }
+.hm-info-site { color: var(--ink-soft); font-weight: 500; }
+.hm-help-us {
+  margin-top: 20px;
+  padding: 12px 16px 16px;
+  border: 3px dashed rgba(43, 34, 64, 0.25);
+  border-radius: 22px;
+  background: #fff3cc;
+}
+.hm-help-us h3 { margin-top: 4px; }
+.hm-help-us .hm-share { margin-top: 6px; }
+.hm-sec { margin-top: 14px; padding-top: 4px; border-top: 3px dashed rgba(43, 34, 64, 0.12); }
+.hm-row { display: flex; align-items: flex-start; gap: 12px; margin: 8px 0; }
+.hm-row > .icon { width: 40px; height: 40px; flex: 0 0 auto; }
+.hm-row p { margin: 7px 0 0; }
+@media (max-width: 600px) {
+  .modal-back.home-modal .modal { padding: 18px 16px 20px; }
+  .hm-info { font-size: 1rem; }
+  .hm-info h2 { font-size: 1.35rem; }
+  .hm-info-logo { width: 52px; height: 52px; }
+  .hm-row > .icon { width: 34px; height: 34px; }
+  .hm-row p { margin-top: 4px; }
 }

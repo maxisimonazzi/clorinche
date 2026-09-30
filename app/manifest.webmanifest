@@ -1,7 +1,7 @@
 {
   "name": "Colorines",
   "short_name": "Colorines",
-  "description": "Para colorear y dibujar: dibujos para pintar con balde y pincel, pizarra mágica, modo neón y fuegos artificiales. Pensada para chicos de 3 a 8 años. Funciona sin internet.",
+  "description": "Para colorear, dibujar y jugar: dibujos para pintar con balde y pincel, pizarra mágica, modo neón, fuegos artificiales y juegos de colores y números con voz. Pensada para chicos de 3 a 8 años. Funciona sin internet.",
   "lang": "es",
   "dir": "ltr",
   "start_url": "./index.html",
